@@ -18,8 +18,8 @@ import java.util.Map.Entry;
  */
 public class Dictionary {
 
-	private Map<Character, CharNode> dict = new HashMap<Character, CharNode>();
-	
+	private static Map<Character, CharNode> dict = new HashMap<Character, CharNode>();
+	private static boolean isLoad = false;
 	/**
 	 * 默认从data/chars.dic,data/words.dic加载.
 	 */
@@ -34,7 +34,10 @@ public class Dictionary {
 	 */
 	public Dictionary(String charsFile, String wordsFile) {
 		try {
-			init(charsFile, wordsFile);
+			if(!isLoad) {
+				init(charsFile, wordsFile);
+				isLoad = true;
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -50,6 +53,9 @@ public class Dictionary {
 		lineNum = load(charsFile, new FileLoading() {	//单个字的
 
 			public void row(String line, int n) {
+				if(line == null || line.startsWith("#")) {
+					return;
+				}
 				String[] w = line.split(" ");
 				CharNode cn = new CharNode();
 				switch(w.length) {
@@ -71,6 +77,9 @@ public class Dictionary {
 		lineNum = load(wordsFile, new FileLoading() {//正常的词库
 
 			public void row(String line, int n) {
+				if(line == null || line.startsWith("#")) {
+					return;
+				}
 				CharNode cn = dict.get(line.charAt(0));
 				if(cn == null) {
 					cn = new CharNode();
@@ -134,9 +143,17 @@ public class Dictionary {
 			return false;
 		}
 		CharNode cn = dict.get(word.charAt(0));
-		if(cn != null) {
-			return cn.indexOf(tail(word)) >= 0;
+		return search(cn, tail(word)) >= 0;
+	}
+	
+	public CharNode head(char ch) {
+		return dict.get(ch);
+	}
+	
+	public int search(CharNode node, char[] tail) {
+		if(node != null) {
+			return node.indexOf(tail);
 		}
-		return false;
+		return -1;
 	}
 }

@@ -5,6 +5,25 @@ package com.chenlb.mmseg4j;
  * 
  * @author chenlb 2009-3-3 下午11:56:53
  */
-public class Chunk {
+public class Sentence {
 
+	private char[] text;
+	private int offest;
+
+	public Sentence(char[] text) {
+		super();
+		this.text = text;
+	}
+
+	public char[] getText() {
+		return text;
+	}
+
+	public int getOffest() {
+		return offest;
+	}
+
+	public void setOffest(int offest) {
+		this.offest = offest;
+	}
 }
