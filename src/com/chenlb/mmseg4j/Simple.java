@@ -111,7 +111,7 @@ public class Simple {
 		
 		if(currentSentence != null) {
 			char[] chs = currentSentence.getText();
-			int offset = currentSentence.getOffest();
+			int offset = currentSentence.getOffset();
 			CharNode cn = dic.head(chs[offset]);
 			if(cn != null && offset < chs.length) {
 				int len = 0;
@@ -129,7 +129,7 @@ public class Simple {
 				sb.append(chs, offset, len+1);
 				offset += len + 1;
 			}
-			currentSentence.setOffest(offset);
+			currentSentence.setOffset(offset);
 			if(offset >= chs.length) {
 				currentSentence = null;
 			}
