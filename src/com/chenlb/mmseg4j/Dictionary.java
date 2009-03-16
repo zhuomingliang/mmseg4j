@@ -61,7 +61,7 @@ public class Dictionary {
 				switch(w.length) {
 				case 2:
 					try {
-						cn.setFreq(Integer.parseInt(w[1]));//字频
+						cn.setFreq((int)(Math.log(Integer.parseInt(w[1]))*100));//字频计算出自由度
 					} catch(NumberFormatException e) {
 						//eat...
 					}

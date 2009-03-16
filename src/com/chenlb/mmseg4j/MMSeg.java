@@ -3,14 +3,8 @@ package com.chenlb.mmseg4j;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 
-/**
- * 
- * 
- * @author chenlb 2009-3-14 上午12:38:40
- */
-public class Simple {
+public class MMSeg {
 	
 	private Dictionary dic;
 	private Reader reader;
@@ -18,8 +12,7 @@ public class Simple {
 	private StringBuilder bufSentence = new StringBuilder(256);
 	private Sentence currentSentence;
 	
-	public Simple(Dictionary dic, Reader reader) {
-		super();
+	public MMSeg(Dictionary dic, Reader reader) {
 		this.dic = dic;
 		this.reader = new BufferedReader(reader, 2048);
 	}
@@ -96,7 +89,6 @@ public class Simple {
 			if(bufSentence.length() > 0) {
 				startIdx = readedIdx - bufSentence.length();
 				if(returnWord) {
-					
 					//word = bufChunk.toString();
 					sb.append(bufSentence);
 				} else {
@@ -148,23 +140,4 @@ public class Simple {
 	private boolean isEnglishLetter(int type) {
 		return type <= Character.MODIFIER_LETTER && type >= Character.UPPERCASE_LETTER;
 	}
-	
-	public static void main(String[] args) throws IOException {
-		String txt = "京华时报1月23日报道 昨天，受一股来自中西伯利亚的强冷空气影响，本市出现大风降温天气，白天最高气温只有零下7摄氏度，同时伴有6到7级的偏北风。";
-		
-		/*for(int i=0; i<txt.length(); i++) {
-			char ch = txt.charAt(i);
-			System.out.println(ch+" -> "+Character.getType(ch)+" l:"+Character.isLetter(ch)+" d:"+Character.isDigit(ch));
-		}*/
-		//txt = "我们是中国人,来自广州的吗?";
-		txt = "today,…………i'am chenlb,<《公主小妹》>?我@$#%&*()$!!,";
-		Simple simple = new Simple(new Dictionary(), new StringReader(txt));
-		StringBuilder sb = new StringBuilder();
-		int word = -1;
-		while((word=simple.next(sb)) != -1) {
-			System.out.print("["+sb.toString()+","+word+"] ");
-		}
-		new Character(' ');
-	}
-
 }

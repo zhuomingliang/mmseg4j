@@ -11,7 +11,7 @@ import java.util.Collections;
 public class CharNode {
 
 	private ArrayList<char[]> wordTails = new ArrayList<char[]>();	//word除去一个字的部分
-	private int freq;	//单字才需要
+	private int freq = -1;	//Degree of Morphemic Freedom of One-Character, 单字才需要
 	private int maxLen = 0;	//wordTail的最长
 	
 	private CharArrayComparator cac = new CharArrayComparator();

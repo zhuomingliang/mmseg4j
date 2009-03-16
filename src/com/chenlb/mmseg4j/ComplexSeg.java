@@ -3,20 +3,35 @@ package com.chenlb.mmseg4j;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.chenlb.mmseg4j.rule.LargestAvgLenRule;
+import com.chenlb.mmseg4j.rule.LargestSumDegreeFreedomRule;
+import com.chenlb.mmseg4j.rule.MaxMatchRule;
+import com.chenlb.mmseg4j.rule.Rule;
+import com.chenlb.mmseg4j.rule.SmallestVarianceRule;
+
+
 public class ComplexSeg {
 
 	private Dictionary dic = new Dictionary();
+	private MaxMatchRule mmr = new MaxMatchRule();
+	private List<Rule> otherRules = new ArrayList<Rule>();
 	
+	public ComplexSeg() {
+		otherRules.add(new LargestAvgLenRule());
+		otherRules.add(new SmallestVarianceRule());
+		otherRules.add(new LargestSumDegreeFreedomRule());
+	}
 	
-	public void seg(String gbkStr) {
-		int offset = 0;
-		char[] chs = gbkStr.toCharArray();
+	public Chunk seg(Sentence sen) {
+		//int offset = 0;
+		char[] chs = sen.getText();
 		int[] w = new int[3];
 		int[] offsets = new int[3];
-		while(offset < chs.length) {
+		mmr.reset();
+		if(sen.getOffset() < chs.length) {
 			//System.out.println();
 			int maxLen = 3;
-			offsets[0] = offset;
+			offsets[0] = sen.getOffset();
 			for(w[0]=maxLen(chs, offsets[0]); w[0]>=0; w[0]--) {
 				int idx = search(chs, offsets[0], w[0]);
 				if(idx > -1 || w[0]==0) {	//idx > -1 找到, w[0]==0单个字
@@ -36,11 +51,18 @@ public class ComplexSeg {
 										if(offsets[i] < chs.length) {
 											ck.words[i] = new char[w[i]+1];
 											System.arraycopy(chs, offsets[i], ck.words[i], 0, w[i]+1);
+											if(w[i] == 0) {
+												CharNode cn = dic.head(chs[offsets[i]]);
+												if(cn !=null) {
+													ck.degrees[i] = cn.getFreq();
+												}
+											}
 										}
 									}
 									if(len > maxLen) {
 										maxLen = len;
 									}
+									mmr.addChunk(ck);
 									//System.out.println(ck);
 								}
 							}
@@ -48,7 +70,32 @@ public class ComplexSeg {
 					}
 				}
 			}
-			offset+=maxLen;
+			sen.addOffset(maxLen);
+			List<Chunk> chunks = mmr.remainChunks();
+			for(Rule rule : otherRules) {
+				//System.out.println("-------filter before "+rule+"----------");
+				//printChunk(chunks);
+				if(chunks.size() > 1) {
+					rule.reset();
+					rule.addChunks(chunks);
+					chunks = rule.remainChunks();
+				} else {
+					break;
+				}
+			}
+			//System.out.println("-------remainChunks----------");
+			//printChunk(chunks);
+			if(chunks.size() > 0) {
+				return chunks.get(0);
+			}
+		}
+		return null;
+	}
+	
+	@SuppressWarnings("unused")
+	private void printChunk(List<Chunk> chunks) {// for debug
+		for(Chunk ck : chunks) {
+			System.out.println(ck+" -> "+ck.toFactorString());
 		}
 	}
 	
@@ -70,21 +117,22 @@ public class ComplexSeg {
 	}
 	
 	public static void main(String[] args) {
-		String 
-		txt = "研究生命起源";
-		txt = "眼看就要来了";
-		txt = "中西伯利亚";
-		txt = "人生三子";
+		String txt = "";
+		//txt = "研究生命起源";
+		//txt = "为首要考虑";
+		//txt = "眼看就要来了";
+		//txt = "中西伯利亚";
+		//txt = "人生三子";
 		txt = "国际化";
-		txt = "中国";
-		txt = "我";
-		txt = "受一股来自中西伯利亚的强冷空气影响";
+		//txt = "中国";
+		//txt = "我";
+		//txt = "受一股来自中西伯利亚的强冷空气影响";
 		
 		ComplexSeg cs = new ComplexSeg();
-		cs.seg(txt);
+		cs.seg(new Sentence(txt.toCharArray(), 0));
 	}
 
-	private static class Chunk {
+/*	private static class Chunk {
 		char[][] words = new char[3][];
 
 		@Override
@@ -97,7 +145,5 @@ public class ComplexSeg {
 			}
 			return sb.toString();
 		}
-		
-		
-	}
+	}*/
 }
