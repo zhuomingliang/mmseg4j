@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
@@ -17,17 +18,19 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
+import com.chenlb.mmseg4j.analysis.ComplexAnalyzer;
 import com.chenlb.mmseg4j.analysis.SimpleAnalyzer;
 
 public class LuceneUseSimpleAnalyzerTest extends TestCase {
 
 	Directory dir;
-	SimpleAnalyzer analyzer;
+	Analyzer analyzer;
 	
 	@Override
 	protected void setUp() throws Exception {
 		String txt = "京华时报1月23日报道 昨天，受一股来自中西伯利亚的强冷空气影响，本市出现大风降温天气，白天最高气温只有零下7摄氏度，同时伴有6到7级的偏北风。";
 		analyzer = new SimpleAnalyzer();
+		analyzer = new ComplexAnalyzer();
 		dir = new RAMDirectory();
 		IndexWriter iw = new IndexWriter(dir, analyzer);
 		Document doc = new Document();

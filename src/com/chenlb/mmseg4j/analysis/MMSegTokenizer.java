@@ -7,20 +7,16 @@ import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.Tokenizer;
 
 import com.chenlb.mmseg4j.Chunk;
-import com.chenlb.mmseg4j.Dictionary;
 import com.chenlb.mmseg4j.MMSeg;
-import com.chenlb.mmseg4j.SimpleSeg;
+import com.chenlb.mmseg4j.Seg;
 
-public class SimpleTokenizer extends Tokenizer {
+public class MMSegTokenizer extends Tokenizer {
 
 	private MMSeg mmSeg;
-	public SimpleTokenizer(Reader input) {
-		this(new Dictionary(), input);
-	}
 
-	public SimpleTokenizer(Dictionary dic, Reader input) {
+	public MMSegTokenizer(Seg seg, Reader input) {
 		super(input);
-		mmSeg = new MMSeg(this.input, new SimpleSeg(dic));
+		mmSeg = new MMSeg(this.input, seg);
 	}
 
 	private Chunk chunk = null;
