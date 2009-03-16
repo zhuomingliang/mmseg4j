@@ -116,4 +116,8 @@ public class Chunk {
 	public void setStartOffset(int startOffset) {
 		this.startOffset = startOffset;
 	}
+
+	public char[][] getWords() {
+		return words;
+	}
 }
