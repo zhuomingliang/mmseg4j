@@ -9,6 +9,7 @@ public class Chunk {
 
 	char[][] words = new char[3][];
 	int[] degrees = {-1, -1, -1};
+	private int startOffset;
 	
 	private int count = -1;
 	
@@ -104,5 +105,15 @@ public class Chunk {
 		sb.append("variance=").append(getVariance()).append(", ");
 		sb.append("sum100log=").append(getSumDegree()).append("]");
 		return sb.toString();
+	}
+
+	/** chunk 中第一个词在文本中的偏移位置 */
+	public int getStartOffset() {
+		return startOffset;
+	}
+
+	/** chunk 中第一个词在文本中的偏移位置 */
+	public void setStartOffset(int startOffset) {
+		this.startOffset = startOffset;
 	}
 }

@@ -10,13 +10,18 @@ import com.chenlb.mmseg4j.rule.Rule;
 import com.chenlb.mmseg4j.rule.SmallestVarianceRule;
 
 
-public class ComplexSeg {
+/**
+ * 
+ * 
+ * @author chenlb 2009-3-16 下午09:15:26
+ */
+public class ComplexSeg extends Seg{
 
-	private Dictionary dic = new Dictionary();
 	private MaxMatchRule mmr = new MaxMatchRule();
 	private List<Rule> otherRules = new ArrayList<Rule>();
 	
-	public ComplexSeg() {
+	public ComplexSeg(Dictionary dic) {
+		super(dic);
 		otherRules.add(new LargestAvgLenRule());
 		otherRules.add(new SmallestVarianceRule());
 		otherRules.add(new LargestSumDegreeFreedomRule());
@@ -44,10 +49,11 @@ public class ComplexSeg {
 								idx = search(chs, offsets[2], w[2]);
 								if(idx > -1 || w[2]==0) {	//有chunk
 									Chunk ck = new Chunk();
+									ck.setStartOffset(sen.getStartOffset()+offsets[0]);
 									int len = 0;
 									for(int i=0; i<3; i++) {
 										len += w[i]+1;
-										
+
 										if(offsets[i] < chs.length) {
 											ck.words[i] = new char[w[i]+1];
 											System.arraycopy(chs, offsets[i], ck.words[i], 0, w[i]+1);
@@ -115,35 +121,4 @@ public class ComplexSeg {
 		}
 		return Math.min(dic.head(chs[offset]).getMaxLen(), chs.length-offset-1);
 	}
-	
-	public static void main(String[] args) {
-		String txt = "";
-		//txt = "研究生命起源";
-		//txt = "为首要考虑";
-		//txt = "眼看就要来了";
-		//txt = "中西伯利亚";
-		//txt = "人生三子";
-		txt = "国际化";
-		//txt = "中国";
-		//txt = "我";
-		//txt = "受一股来自中西伯利亚的强冷空气影响";
-		
-		ComplexSeg cs = new ComplexSeg();
-		cs.seg(new Sentence(txt.toCharArray(), 0));
-	}
-
-/*	private static class Chunk {
-		char[][] words = new char[3][];
-
-		@Override
-		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			for(char[] word : words) {
-				if(word != null) {
-					sb.append(word).append('_');
-				}
-			}
-			return sb.toString();
-		}
-	}*/
 }

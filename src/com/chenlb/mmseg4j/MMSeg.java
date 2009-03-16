@@ -6,15 +6,15 @@ import java.io.Reader;
 
 public class MMSeg {
 	
-	private Dictionary dic;
 	private Reader reader;
+	private Seg seg;
 	
 	private StringBuilder bufSentence = new StringBuilder(256);
 	private Sentence currentSentence;
 	
-	public MMSeg(Dictionary dic, Reader reader) {
-		this.dic = dic;
+	public MMSeg(Reader reader, Seg seg) {
 		this.reader = new BufferedReader(reader, 2048);
+		this.seg = seg;
 	}
 
 	private int readedIdx = -1;
@@ -31,10 +31,9 @@ public class MMSeg {
 		return data;
 	}
 	
-	public int next(StringBuilder sb) throws IOException {
-		sb.setLength(0);
-		int startIdx = -1;
-		//String word = null;
+	public Chunk next() throws IOException {
+
+		Chunk chunk = null;
 		if(currentSentence == null) {
 			bufSentence.setLength(0);
 			int data = -1;
@@ -87,48 +86,31 @@ public class MMSeg {
 			}
 			
 			if(bufSentence.length() > 0) {
-				startIdx = readedIdx - bufSentence.length();
+				int startIdx = readedIdx - bufSentence.length();
 				if(returnWord) {
-					//word = bufChunk.toString();
-					sb.append(bufSentence);
+					chunk = new Chunk();
+					chunk.words[0] = new char[bufSentence.length()];
+					bufSentence.getChars(0, bufSentence.length(), chunk.words[0], 0);
+					chunk.setStartOffset(startIdx);
+					
+					//sb.append(bufSentence);
+					return chunk;
 				} else {
 					char[] chs = new char[bufSentence.length()];
 					bufSentence.getChars(0, bufSentence.length(), chs, 0);
 					currentSentence = new Sentence(chs, startIdx);
 				}
-				
-			}/* else if(bufChunk.length() == 1) {
-				return currentChunk.toString();
-			}*/
+			}
 		}
 		
 		if(currentSentence != null) {
-			char[] chs = currentSentence.getText();
-			int offset = currentSentence.getOffset();
-			CharNode cn = dic.head(chs[offset]);
-			if(cn != null && offset < chs.length) {
-				int len = 0;
-				for(int i=Math.min(cn.getMaxLen(),chs.length-offset-1); i>0; i--) {
-					char[] subChs = new char[i];
-					System.arraycopy(chs, offset+1, subChs, 0, i);
-					int idx = dic.search(cn, subChs);
-					if(idx > -1) {	//找到
-						len = i;
-						break;
-					}
-				}
-				startIdx = readedIdx - chs.length + offset;
-				//word = new String(chs, offset, len+1);
-				sb.append(chs, offset, len+1);
-				offset += len + 1;
-			}
-			currentSentence.setOffset(offset);
-			if(offset >= chs.length) {
+			chunk = seg.seg(currentSentence);
+			if(currentSentence.isFinish()) {
 				currentSentence = null;
 			}
 		}
 		
-		return startIdx;
+		return chunk;
 	}
 	
 	private boolean isCJK(int type) {
