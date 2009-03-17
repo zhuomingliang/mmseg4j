@@ -7,6 +7,7 @@ import org.apache.lucene.analysis.TokenStream;
 
 import com.chenlb.mmseg4j.ComplexSeg;
 import com.chenlb.mmseg4j.Dictionary;
+import com.chenlb.mmseg4j.Seg;
 
 /**
  * 
@@ -15,9 +16,15 @@ import com.chenlb.mmseg4j.Dictionary;
  */
 public class ComplexAnalyzer extends Analyzer {
 
+	private Seg seg;
+	
+	public ComplexAnalyzer() {
+		seg = new ComplexSeg(new Dictionary());
+	}
+	
 	@Override
 	public TokenStream tokenStream(String fieldName, Reader reader) {
-		TokenStream ts = new MMSegTokenizer(new ComplexSeg(new Dictionary()), reader);
+		TokenStream ts = new MMSegTokenizer(seg, reader);
 		return ts;
 	}
 
