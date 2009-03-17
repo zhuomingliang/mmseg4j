@@ -6,6 +6,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 
 import com.chenlb.mmseg4j.Dictionary;
+import com.chenlb.mmseg4j.Seg;
 import com.chenlb.mmseg4j.SimpleSeg;
 
 /**
@@ -15,9 +16,15 @@ import com.chenlb.mmseg4j.SimpleSeg;
  */
 public class SimpleAnalyzer extends Analyzer {
 
+	private Seg seg;
+	
+	public SimpleAnalyzer() {
+		seg = new SimpleSeg(new Dictionary());
+	}
+	
 	@Override
 	public TokenStream tokenStream(String fieldName, Reader reader) {
-		TokenStream ts = new MMSegTokenizer(new SimpleSeg(new Dictionary()), reader);
+		TokenStream ts = new MMSegTokenizer(seg, reader);
 		return ts;
 	}
 }

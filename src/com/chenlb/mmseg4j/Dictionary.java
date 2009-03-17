@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 /**
  * 词典类.<br/>
@@ -18,24 +19,57 @@ import java.util.Map.Entry;
  */
 public class Dictionary {
 
+	static final Logger log = Logger.getLogger(Dictionary.class.getName());
+	
 	private static Map<Character, CharNode> dict = new HashMap<Character, CharNode>();
 	private static boolean isLoad = false;
 	/**
-	 * 默认从data/chars.dic,data/words.dic加载.
+	 * 加载chars.dic,words.dic文件.<p/>
+	 * 查找目录顺序:
+	 * <ol>
+	 * <li>从mmseg.dic.path指定的目录中加载</li>
+	 * <li>Dictionary.class所在路径的类根目录下的data目录</li>
+	 * <li>从user.dir/data目录</li>
+	 * </ol>
 	 */
 	public Dictionary() {
-		this("data/chars.dic", "data/words.dic");
+		if(!isLoad) {
+			String defPath = System.getProperty("mmseg.dic.path");
+			log.info("look up in mmseg.dic.path="+defPath);
+			if(defPath == null) {
+				defPath = Dictionary.class.getResource("/").getFile()+"data";
+				log.info("look up in Dictionary.class '/' path="+defPath);
+			}
+			
+			File path = new File(defPath);
+			if(!path.exists()) {
+				defPath = System.getProperty("user.dir")+"/data";
+				log.info("look up in user.dir="+defPath);
+				path = new File(defPath);
+			}
+			init(path);
+		}
+		
 	}
 	
 	/**
-	 * 词是一行一个.
-	 * @param charsFile 单字文件,还带频率.
-	 * @param wordsFile 词库文件
+	 * @param path 词典的目录
 	 */
-	public Dictionary(String charsFile, String wordsFile) {
+	public Dictionary(String path) {
+		this(new File(path));
+	}
+	
+	/**
+	 * 词典的目录 
+	 */
+	public Dictionary(File path) {
+		init(path);
+	}
+	
+	private void init(File path) {
 		try {
 			if(!isLoad) {
-				init(charsFile, wordsFile);
+				init(new File(path, "chars.dic"), new File(path, "words.dic"));
 				isLoad = true;
 			}
 		} catch (IOException e) {
@@ -47,9 +81,10 @@ public class Dictionary {
 		return System.currentTimeMillis();
 	}
 	
-	private void init(String charsFile, String wordsFile) throws IOException {
+	private void init(File charsFile, File wordsFile) throws IOException {
 		int lineNum = 0;
 		long s = now();
+		long ss = s;
 		lineNum = load(charsFile, new FileLoading() {	//单个字的
 
 			public void row(String line, int n) {
@@ -71,7 +106,7 @@ public class Dictionary {
 				}
 			}
 		});
-		System.out.println("chars loaded time="+(now()-s)+", line="+lineNum);
+		log.info("chars loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+charsFile);
 
 		s = now();
 		lineNum = load(wordsFile, new FileLoading() {//正常的词库
@@ -89,23 +124,24 @@ public class Dictionary {
 			}
 			
 		});
-		System.out.println("words loaded time="+(now()-s)+", line="+lineNum);
+		log.info("words loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+wordsFile);
 		
 		//sort
 		s = now();
 		for(Entry<Character, CharNode> subSet : dict.entrySet()) {
 			subSet.getValue().sort();
 		}
-		System.out.println("sort time="+(now()-s));
+		log.info("sort time="+(now()-s)+"ms");
+		log.info("load dic use time="+(now()-ss)+"ms");
 	}
 	
 	/**
 	 * 加载词文件的模板
 	 * @return 文件总行数
 	 */
-	private int load(String file, FileLoading loading) throws IOException {
+	private int load(File file, FileLoading loading) throws IOException {
 		BufferedReader br = new BufferedReader(
-				new InputStreamReader(new BufferedInputStream(new FileInputStream(new File(file))), "UTF-8"));
+				new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8"));
 		String line = null;
 		int n = 0;
 		while((line = br.readLine()) != null) {

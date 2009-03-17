@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import com.chenlb.mmseg4j.Chunk;
+import com.chenlb.mmseg4j.ComplexSeg;
 import com.chenlb.mmseg4j.Dictionary;
 import com.chenlb.mmseg4j.MMSeg;
 import com.chenlb.mmseg4j.Seg;
-import com.chenlb.mmseg4j.SimpleSeg;
 
 public class Complex {
 
@@ -22,7 +22,7 @@ public class Complex {
 		
 		Dictionary dic = new Dictionary();
 		Seg seg = null;
-		seg = new SimpleSeg(dic);
+		seg = new ComplexSeg(dic);
 		MMSeg mmSeg = new MMSeg(new StringReader(txt), seg);
 		Chunk chunk = null;
 		System.out.println();
