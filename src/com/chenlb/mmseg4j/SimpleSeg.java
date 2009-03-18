@@ -29,13 +29,17 @@ public class SimpleSeg extends Seg{
 					}
 				}
 
-				char[] ck = new char[len+1];
-				System.arraycopy(chs, offset, ck, 0, len+1);
-				chunk.words[k] = ck;
-				if(k==0) {
-					chunk.setStartOffset(sen.getStartOffset()+offset);
-				}
+				
+				
 			}
+			//len == 0 说明没找到, 但还要单个输出
+			char[] ck = new char[len+1];
+			System.arraycopy(chs, offset, ck, 0, len+1);
+			chunk.words[k] = ck;
+			if(k==0) {
+				chunk.setStartOffset(sen.getStartOffset()+offset);
+			}
+			
 			offset += len + 1;
 			sen.setOffset(offset);
 		}

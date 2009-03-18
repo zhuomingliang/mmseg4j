@@ -51,7 +51,7 @@ public class Test extends TestCase {
 	}
 	
 	public void testCodePAndType() {
-		String str = "09０９☆§┍┄○一＄￥≈∑①②！【ゥスぁまēūㄇㄎноνπⅠⅡⅢ";
+		String str = "09０９☆§┍┄○一＄￥≈∑①②！中文【ゥスぁまēūㄇㄎноνπⅠⅡⅢ";
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<str.length(); i++) {
 			sb.setLength(0);

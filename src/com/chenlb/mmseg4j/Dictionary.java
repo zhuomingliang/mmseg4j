@@ -37,16 +37,17 @@ public class Dictionary {
 			String defPath = System.getProperty("mmseg.dic.path");
 			log.info("look up in mmseg.dic.path="+defPath);
 			if(defPath == null) {
-				defPath = Dictionary.class.getResource("/").getFile()+"data";
-				log.info("look up in Dictionary.class '/' path="+defPath);
+				defPath = System.getProperty("user.dir")+"/data";
+				log.info("look up in user.dir="+defPath);
+				
 			}
 			
 			File path = new File(defPath);
-			if(!path.exists()) {
-				defPath = System.getProperty("user.dir")+"/data";
-				log.info("look up in user.dir="+defPath);
+			//if(!path.exists()) {
+			//	defPath = Dictionary.class.getResource("/data").getFile();
+			//	log.info("look up in Dictionary.class '/data' path="+defPath);
 				path = new File(defPath);
-			}
+			//}
 			init(path);
 		}
 		

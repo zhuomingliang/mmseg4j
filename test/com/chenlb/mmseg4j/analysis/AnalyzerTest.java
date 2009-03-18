@@ -20,7 +20,7 @@ public class AnalyzerTest extends TestCase {
 
 	public void testSimple() {
 		SimpleAnalyzer analyzer = new SimpleAnalyzer();
-		txt = "２００９年是中国首次,我的ⅠⅡⅢ在chenlbēū全国范围内①②发行地方政府债券，";
+		txt = "２００９年ゥスぁま是中国首次,我的ⅠⅡⅢ在chenlbēū全国范围内①②发行地方政府债券，";
 		try {
 			printlnToken(txt, analyzer);
 		} catch (IOException e) {

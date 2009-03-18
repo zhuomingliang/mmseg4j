@@ -48,7 +48,14 @@ public class MMSeg {
 				case Character.TITLECASE_LETTER:
 				case Character.MODIFIER_LETTER:
 					if(lastType < 0 || isEnglishLetter(lastType)) {
-						bufSentence.appendCodePoint(data);
+						//TODO 只允许 ascii 连接着
+						if(isAscii(data)) {
+							bufSentence.appendCodePoint(data);
+						} else {
+							lastData = data;
+							read = false;
+						}
+						
 						returnWord = true;
 					} else {
 						lastData = data;	//下次再用
@@ -81,11 +88,13 @@ public class MMSeg {
 					if(lastType < 0) {
 						bufSentence.appendCodePoint(data);
 						returnWord = true;
+					} else {
+						if(!isOtherNumber(lastType)) {//处理上次积累的, 当前的下一次再处理
+							lastData = data;
+						}
 					}
-					
-					lastData = -1;
 					read = false;
-					lastType = type;
+					lastType = -1;
 					break;
 				default :
 					if(lastType >=0) {
@@ -129,6 +138,14 @@ public class MMSeg {
 			codePoint -= 65248;
 		}
 		return codePoint;
+	}
+	
+	private boolean isAscii(int codePoint) {
+		return codePoint < 128;
+	}
+	
+	private boolean isOtherNumber(int type) {
+		return type == Character.LETTER_NUMBER || type == Character.OTHER_NUMBER;
 	}
 	
 	private boolean isCJK(int type) {
