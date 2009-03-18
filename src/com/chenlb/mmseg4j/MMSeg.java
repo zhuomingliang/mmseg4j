@@ -68,12 +68,23 @@ public class MMSeg {
 					break;
 				case Character.DECIMAL_DIGIT_NUMBER:
 					if(lastType < 0 || isDigit(lastType)) {
-						bufSentence.appendCodePoint(data);
+						bufSentence.appendCodePoint(chineseNumberToDigit(data));
 						returnWord = true;
 					} else {
 						lastData = data;
 						read = false;
 					}
+					lastType = type;
+					break;
+				case Character.LETTER_NUMBER:
+				case Character.OTHER_NUMBER:
+					if(lastType < 0) {
+						bufSentence.appendCodePoint(data);
+						returnWord = true;
+					}
+					
+					lastData = -1;
+					read = false;
 					lastType = type;
 					break;
 				default :
@@ -111,6 +122,13 @@ public class MMSeg {
 		}
 		
 		return chunk;
+	}
+	
+	private int chineseNumberToDigit(int codePoint) {
+		if(codePoint>=65296 && codePoint<=65305) {	//０-９
+			codePoint -= 65248;
+		}
+		return codePoint;
 	}
 	
 	private boolean isCJK(int type) {

@@ -39,4 +39,26 @@ public class Test extends TestCase {
 		path = System.getProperty("user.dir");
 		System.out.println(path);
 	}
+	
+	public void testZhNumCodeP() {
+		String num = "０１２３４５６７８９";
+		String n = "0123456789";
+		for(int i=0; i<num.length(); i++) {
+			int cp = num.codePointAt(i);
+			int ncp = n.codePointAt(i);
+			System.out.println((char)cp+" -> "+cp+", "+(char)ncp+" -> "+ncp);
+		}
+	}
+	
+	public void testCodePAndType() {
+		String str = "09０９☆§┍┄○一＄￥≈∑①②！【ゥスぁまēūㄇㄎноνπⅠⅡⅢ";
+		StringBuilder sb = new StringBuilder();
+		for(int i=0; i<str.length(); i++) {
+			sb.setLength(0);
+			int cp = str.codePointAt(i);
+			sb.appendCodePoint(cp).append(" -> ").append(cp);
+			sb.append(", type=").append(Character.getType(cp));
+			System.out.println(sb);
+		}
+	}
 }
