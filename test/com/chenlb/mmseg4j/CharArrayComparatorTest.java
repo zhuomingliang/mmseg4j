@@ -1,5 +1,7 @@
 package com.chenlb.mmseg4j;
 
+import com.chenlb.mmseg4j.CharNode.CharArrayComparator;
+
 import junit.framework.TestCase;
 
 public class CharArrayComparatorTest extends TestCase {
