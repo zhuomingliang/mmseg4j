@@ -119,6 +119,10 @@ public class ComplexSeg extends Seg{
 		if(offset >= chs.length) {
 			return 0;
 		}
-		return Math.min(dic.head(chs[offset]).getMaxLen(), chs.length-offset-1);
+		CharNode cn = dic.head(chs[offset]);
+		if(cn == null) {
+			return 0;
+		}
+		return Math.min(cn.getMaxLen(), chs.length-offset-1);
 	}
 }

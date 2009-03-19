@@ -59,7 +59,7 @@ public class MMSeg {
 						NationLetter nl = getNation(data);
 						switch(nl) {
 						case EN:
-							read = isAsciiLetter(lastData);
+							read = isAsciiLetter(toAscii(lastData));
 							break;
 						case RA:
 							read = isRussiaLetter(lastData);
@@ -68,13 +68,15 @@ public class MMSeg {
 							read = isGreeceLetter(lastData);
 							break;
 						default :
-							read = true;
+							read = lastType < 0;
 							available = false;	//
 							type = -1;
 						}
 						returnWord = true;
 						if(!read) {
-							nextData = data;
+							if(available) {
+								nextData = data;
+							}
 							type = -1;	//单字处理
 						} else if(available) {
 							bufSentence.appendCodePoint(data);
@@ -179,7 +181,7 @@ public class MMSeg {
 	private int toAscii(int codePoint) {
 		if((codePoint>=65296 && codePoint<=65305)	//０-９
 				|| (codePoint>=65313 && codePoint<=65338)	//Ａ-Ｚ
-				|| (codePoint>=65313 && codePoint<=65338)	//ａ-ｚ
+				|| (codePoint>=65345 && codePoint<=65370)	//ａ-ｚ
 				) {	
 			codePoint -= 65248;
 		}
