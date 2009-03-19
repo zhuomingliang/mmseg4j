@@ -3,6 +3,7 @@ package com.chenlb.mmseg4j;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 
 import junit.framework.TestCase;
 
@@ -51,13 +52,55 @@ public class Test extends TestCase {
 	}
 	
 	public void testCodePAndType() {
-		String str = "09０９☆§┍┄○一＄￥≈∑①②！中文【ゥスぁまēūㄇㄎноνπⅠⅡⅢ";
+		String str = "09０９☆§┍┄○一＄￥≈∑①⑩㈠㈩⒈⒑⒒⒛⑴⑽⑾⒇！中文【ゥスぁまēūㄇㄎноνπⅠⅡⅢ";
+		
+		str = "ぁぃぅぇぉかきくけこんさしすせそたちつってとゐなにぬねのはひふへほゑまみむめもゃゅょゎを";
+		str += "あいうえおがぎぐげござじずぜぞだぢづでどぱぴぷぺぽばびぶべぼらりるれろやゆよわ";
+		
+		str += "ァィゥヴェォカヵキクケヶコサシスセソタチツッテトヰンナニヌネノハヒフヘホヱマミムメモャュョヮヲ";
+		str += "アイウエオガギグゲゴザジズゼゾダヂヅデドパピプペポバビブベボラリルレロヤユヨワ";
+		
+		str = "āáǎàōóǒòêēéěèīíǐìūúǔùǖǘǚǜü";
+		
+		/*str = "ㄅㄉˇˋㄓˊ˙ㄚㄞㄢㄦㄆㄊㄍㄐㄔㄗㄧㄛㄟㄣㄇㄋㄎㄑㄕㄘㄨㄜㄠㄤㄈㄌㄏㄒㄖㄙㄩㄝㄡㄥ";
+		
+		str = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+		str += "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";*/
+		
+		/*str = "αβγδεζηθικλμνξοπρστυφχψω";
+		str += "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ";*/
+		
+		int[] cps = new int[str.length()];
+		for(int i=0; i<str.length(); i++) {
+			cps[i] = str.codePointAt(i);
+		}
+		Arrays.sort(cps);
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<str.length(); i++) {
 			sb.setLength(0);
-			int cp = str.codePointAt(i);
+			int cp = cps[i];//str.codePointAt(i);
 			sb.appendCodePoint(cp).append(" -> ").append(cp);
 			sb.append(", type=").append(Character.getType(cp));
+			sb.append(", hex=").append(Integer.toHexString(cp));
+			System.out.println(sb);
+		}
+	}
+	
+	public void testCodePAndType2() {
+		
+		int start = 12435+1;
+		int end = 12449-1;
+		
+		start = 0xff21;
+		end = 0xff5a;
+		
+		StringBuilder sb = new StringBuilder();
+		for(int i=start; i<=end; i++) {
+			sb.setLength(0);
+			int cp = i;//str.codePointAt(i);
+			sb.appendCodePoint(cp).append(" -> ").append(cp);
+			sb.append(", type=").append(Character.getType(cp));
+			sb.append(", hex=").append(Integer.toHexString(cp));
 			System.out.println(sb);
 		}
 	}

@@ -19,11 +19,12 @@ public class MMSeg {
 
 	private int readedIdx = -1;
 	private int lastData = -1;
+	private int nextData = -1;
 	private int readNext() throws IOException {
 		int data = -1;
-		if(lastData >=0) {
-			data = lastData;
-			lastData = -1;
+		if(nextData >=0) {
+			data = nextData;
+			nextData = -1;
 		} else {
 			readedIdx++;
 			data = reader.read();
@@ -47,54 +48,92 @@ public class MMSeg {
 				case Character.LOWERCASE_LETTER:
 				case Character.TITLECASE_LETTER:
 				case Character.MODIFIER_LETTER:
-					if(lastType < 0 || isEnglishLetter(lastType)) {
-						//TODO 只允许 ascii 连接着
-						if(isAscii(data)) {
-							bufSentence.appendCodePoint(data);
-						} else {
-							lastData = data;
-							read = false;
+					/*
+					 * 1. 0x410-0x44f -> А-я	//俄文
+					 * 2. 0x391-0x3a9 -> Α-Ω	//希腊大写
+					 * 3. 0x3b1-0x3c9 -> α-ω	//希腊小写
+					 */
+					if(lastType < 0 || isLetter(lastType)) {
+						data = toAscii(data);
+						boolean available = true;
+						NationLetter nl = getNation(data);
+						switch(nl) {
+						case EN:
+							read = isAsciiLetter(lastData);
+							break;
+						case RA:
+							read = isRussiaLetter(lastData);
+							break;
+						case GE:
+							read = isGreeceLetter(lastData);
+							break;
+						default :
+							read = true;
+							available = false;	//
+							type = -1;
 						}
-						
 						returnWord = true;
+						if(!read) {
+							nextData = data;
+							type = -1;	//单字处理
+						} else if(available) {
+							bufSentence.appendCodePoint(data);
+						}
 					} else {
-						lastData = data;	//下次再用
+						nextData = data;	//下次再用
 						read = false;
 					}
+					
 					lastType = type;
 					break;
 				case Character.OTHER_LETTER:
+					/*
+					 * 1. 0x3041-0x30f6 -> ぁ-ヶ	//日文(平|片)假名
+					 * 2. 0x3105-0x3129 -> ㄅ-ㄩ	//注意符号
+					 */
 					if(lastType < 0 || isCJK(lastType)) {
 						bufSentence.appendCodePoint(data);
 						returnWord = false;
 					} else {
-						lastData = data;
+						nextData = data;
 						read = false;
 					}
 					lastType = type;
 					break;
 				case Character.DECIMAL_DIGIT_NUMBER:
 					if(lastType < 0 || isDigit(lastType)) {
-						bufSentence.appendCodePoint(chineseNumberToDigit(data));
+						bufSentence.appendCodePoint(toAscii(data));
 						returnWord = true;
 					} else {
-						lastData = data;
+						nextData = data;
 						read = false;
 					}
 					lastType = type;
 					break;
 				case Character.LETTER_NUMBER:
-				case Character.OTHER_NUMBER:
+					// ⅠⅡⅢ 单分
 					if(lastType < 0) {
 						bufSentence.appendCodePoint(data);
 						returnWord = true;
 					} else {
-						if(!isOtherNumber(lastType)) {//处理上次积累的, 当前的下一次再处理
-							lastData = data;
+						if(lastType != Character.LETTER_NUMBER) {//处理上次积累的, 当前的下一次再处理
+							nextData = data;
 						}
 					}
 					read = false;
 					lastType = -1;
+					break;
+				case Character.OTHER_NUMBER:
+					//①⑩㈠㈩⒈⒑⒒⒛⑴⑽⑾⒇ 连着用
+					if(lastType < 0 || lastType == Character.OTHER_NUMBER) {
+						bufSentence.appendCodePoint(data);
+						returnWord = true;
+					} else {
+						nextData = data;
+						read = false;
+					}
+					
+					lastType = type;
 					break;
 				default :
 					if(lastType >=0) {
@@ -102,7 +141,7 @@ public class MMSeg {
 					}
 					lastType = -1;
 				}
-				
+				lastData = data;
 			}
 			
 			if(bufSentence.length() > 0) {
@@ -133,19 +172,50 @@ public class MMSeg {
 		return chunk;
 	}
 	
-	private int chineseNumberToDigit(int codePoint) {
-		if(codePoint>=65296 && codePoint<=65305) {	//０-９
+	
+	/**
+	 * 双角转单角
+	 */
+	private int toAscii(int codePoint) {
+		if((codePoint>=65296 && codePoint<=65305)	//０-９
+				|| (codePoint>=65313 && codePoint<=65338)	//Ａ-Ｚ
+				|| (codePoint>=65313 && codePoint<=65338)	//ａ-ｚ
+				) {	
 			codePoint -= 65248;
 		}
 		return codePoint;
 	}
 	
-	private boolean isAscii(int codePoint) {
-		return codePoint < 128;
+	private boolean isAsciiLetter(int codePoint) {
+		return (codePoint >= 'A' && codePoint <= 'Z') || (codePoint >= 'a' && codePoint <= 'z');
 	}
 	
-	private boolean isOtherNumber(int type) {
-		return type == Character.LETTER_NUMBER || type == Character.OTHER_NUMBER;
+	private boolean isRussiaLetter(int codePoint) {
+		return (codePoint >= 'А' && codePoint <= 'я') || codePoint=='Ё' || codePoint=='ё';
+	}
+	
+	private boolean isGreeceLetter(int codePoint) {
+		return (codePoint >= 'Α' && codePoint <= 'Ω') || (codePoint >= 'α' && codePoint <= 'ω');
+	}
+	/**
+	 * EN -> 英语
+	 * RA -> 俄语
+	 * GE -> 希腊
+	 * 
+	 */
+	private static enum NationLetter {EN, RA, GE, UNKNOW};
+	
+	private NationLetter getNation(int codePoint) {
+		if(isAsciiLetter(codePoint)) {
+			return NationLetter.EN;
+		}
+		if(isRussiaLetter(codePoint)) {
+			return NationLetter.RA;
+		}
+		if(isGreeceLetter(codePoint)) {
+			return NationLetter.GE;
+		}
+		return NationLetter.UNKNOW;
 	}
 	
 	private boolean isCJK(int type) {
@@ -154,7 +224,7 @@ public class MMSeg {
 	private boolean isDigit(int type) {
 		return type == Character.DECIMAL_DIGIT_NUMBER;
 	}
-	private boolean isEnglishLetter(int type) {
+	private boolean isLetter(int type) {
 		return type <= Character.MODIFIER_LETTER && type >= Character.UPPERCASE_LETTER;
 	}
 }
