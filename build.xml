@@ -74,7 +74,11 @@
 	<target name="build" depends="build.java,build.test" />
 
 	<target name="jar" depends="build.java">
-		<jar destfile="${build.dir}/${project.name}-${version}.jar" basedir="${build.java.dir}" />
+		<jar destfile="${build.dir}/${project.name}-${version}.jar" basedir="${build.java.dir}" >
+			<manifest>
+				<attribute name="Main-Class" value="com.chenlb.mmseg4j.example.Complex"/>
+			</manifest>
+		</jar>
 	</target>
 
 	<target name="clean">
