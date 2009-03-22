@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="mmreg4j" default="init">
+<project name="mmseg4j" default="init">
 
 	<property file="build.properties" />
 	<property name="project.name" value="${ant.project.name}" />

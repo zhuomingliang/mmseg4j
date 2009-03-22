@@ -1,0 +1,5 @@
+---------1.0--------------
+1.实现 mmseg 算法分词
+2.有两种 Simple 和 Complex 分词
+3.扩展 Lucene 的 Analyzer, 以便结合 Lucene 使用
+4.扩展 Solr 的 TokenizerFactory, 以便结合 Solr 使用

@@ -12,14 +12,24 @@ public class MMSeg {
 	private StringBuilder bufSentence = new StringBuilder(256);
 	private Sentence currentSentence;
 	
-	public MMSeg(Reader reader, Seg seg) {
-		this.reader = new BufferedReader(reader, 2048);
+	public MMSeg(Reader input, Seg seg) {
+		this.reader = new BufferedReader(input, 2048);
 		this.seg = seg;
 	}
 
 	private int readedIdx = -1;
 	private int lastData = -1;
 	private int nextData = -1;
+	
+	public void reset(Reader input) {
+		this.reader = input;
+		currentSentence = null;
+		bufSentence.setLength(0);
+		readedIdx = -1;
+		lastData = -1;
+		nextData = -1;
+	}
+	
 	private int readNext() throws IOException {
 		int data = -1;
 		if(nextData >=0) {

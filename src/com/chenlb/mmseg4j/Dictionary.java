@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -21,8 +22,11 @@ public class Dictionary {
 
 	static final Logger log = Logger.getLogger(Dictionary.class.getName());
 	
-	private static Map<Character, CharNode> dict = new HashMap<Character, CharNode>();
-	private static boolean isLoad = false;
+	private Map<Character, CharNode> dict;// = new HashMap<Character, CharNode>();
+	
+	private static final DicKey defaultDicKey = new DicKey("", "");
+	private static final Map<DicKey, Map<Character, CharNode>> dics = new ConcurrentHashMap<DicKey, Map<Character, CharNode>>();
+	
 	/**
 	 * 加载chars.dic,words.dic文件.<p/>
 	 * 查找目录顺序:
@@ -33,7 +37,8 @@ public class Dictionary {
 	 * </ol>
 	 */
 	public Dictionary() {
-		if(!isLoad) {
+		Map<Character, CharNode> dic = dics.get(defaultDicKey);
+		if(dic == null) {
 			String defPath = System.getProperty("mmseg.dic.path");
 			log.info("look up in mmseg.dic.path="+defPath);
 			if(defPath == null) {
@@ -49,8 +54,11 @@ public class Dictionary {
 				path = new File(defPath);
 			//}
 			init(path);
+			
+			dics.put(defaultDicKey, dict);
+		} else {
+			dict = dic;
 		}
-		
 	}
 	
 	/**
@@ -69,10 +77,15 @@ public class Dictionary {
 	
 	private void init(File path) {
 		try {
-			if(!isLoad) {
-				init(new File(path, "chars.dic"), new File(path, "words.dic"));
-				isLoad = true;
+			File charsFile = new File(path, "chars.dic");
+			File wordsFile = new File(path, "words.dic");
+			DicKey dk = new DicKey(charsFile.getAbsolutePath(), wordsFile.getAbsolutePath());
+			Map<Character, CharNode> dic = dics.get(dk);
+			if(dic == null) {
+				dic = init(charsFile, wordsFile);
+				dics.put(dk, dic);
 			}
+			dict = dic;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -82,14 +95,15 @@ public class Dictionary {
 		return System.currentTimeMillis();
 	}
 	
-	private void init(File charsFile, File wordsFile) throws IOException {
+	private Map<Character, CharNode> init(File charsFile, File wordsFile) throws IOException {
+		final Map<Character, CharNode> dic = new HashMap<Character, CharNode>();
 		int lineNum = 0;
 		long s = now();
 		long ss = s;
 		lineNum = load(charsFile, new FileLoading() {	//单个字的
 
 			public void row(String line, int n) {
-				if(line == null || line.startsWith("#")) {
+				if(line == null || line.startsWith("#") || line.length() < 1) {
 					return;
 				}
 				String[] w = line.split(" ");
@@ -103,7 +117,7 @@ public class Dictionary {
 					}
 				case 1:
 					
-					dict.put(w[0].charAt(0), cn);
+					dic.put(w[0].charAt(0), cn);
 				}
 			}
 		});
@@ -113,13 +127,13 @@ public class Dictionary {
 		lineNum = load(wordsFile, new FileLoading() {//正常的词库
 
 			public void row(String line, int n) {
-				if(line == null || line.startsWith("#")) {
+				if(line == null || line.startsWith("#") || line.length() < 2) {
 					return;
 				}
-				CharNode cn = dict.get(line.charAt(0));
+				CharNode cn = dic.get(line.charAt(0));
 				if(cn == null) {
 					cn = new CharNode();
-					dict.put(line.charAt(0), cn);
+					dic.put(line.charAt(0), cn);
 				}
 				cn.addWordTail(tail(line));
 			}
@@ -129,11 +143,12 @@ public class Dictionary {
 		
 		//sort
 		s = now();
-		for(Entry<Character, CharNode> subSet : dict.entrySet()) {
+		for(Entry<Character, CharNode> subSet : dic.entrySet()) {
 			subSet.getValue().sort();
 		}
 		log.info("sort time="+(now()-s)+"ms");
 		log.info("load dic use time="+(now()-ss)+"ms");
+		return dic;
 	}
 	
 	/**
@@ -192,5 +207,34 @@ public class Dictionary {
 			return node.indexOf(tail);
 		}
 		return -1;
+	}
+	
+	static class DicKey {
+		String charsFile;
+		String wordsFile;
+		public DicKey(String charsFile, String wordsFile) {
+			this.charsFile = charsFile;
+			this.wordsFile = wordsFile;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if(this == obj) {
+				return true;
+			}
+			if(obj instanceof DicKey) {
+				DicKey other = (DicKey) obj;
+				return charsFile.equals(other.charsFile) && wordsFile.equals(other.wordsFile);
+			}
+			return false;
+		}
+		@Override
+		public int hashCode() {
+			return 31*charsFile.hashCode() + 37*wordsFile.hashCode();
+		}
+		@Override
+		public String toString() {
+			return "[chars.dir="+charsFile+", words.dic="+wordsFile+"]";
+		}
+		
 	}
 }

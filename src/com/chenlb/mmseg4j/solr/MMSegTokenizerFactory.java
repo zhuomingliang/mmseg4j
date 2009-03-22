@@ -1,6 +1,7 @@
 package com.chenlb.mmseg4j.solr;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -20,28 +21,13 @@ import com.chenlb.mmseg4j.analysis.MMSegTokenizer;
 public class MMSegTokenizerFactory extends BaseTokenizerFactory implements ResourceLoaderAware {
 
 	static final Logger log = Logger.getLogger(MMSegTokenizerFactory.class.getName());
-	
-	private ThreadLocal<Seg> segLocal;
+	/* 线程内共享 */
+	private ThreadLocal<MMSegTokenizer> tokenizerLocal = new ThreadLocal<MMSegTokenizer>();
 	private Dictionary dic = null;
 	
-	@Override
-	public void init(Map<String, String> args) {
-		super.init(args);
-		log.info("init ...");
-		final Map<String, String> myArgs = args;
-		segLocal = new ThreadLocal<Seg>() {
-
-			@Override
-			protected Seg initialValue() {
-				return initSeg(myArgs);
-			}
-			
-		};
-	}
-
-	private Seg initSeg(Map<String, String> args) {
+	private Seg newSeg(Map<String, String> args) {
 		Seg seg = null;
-		log.info("create new seg ...");
+		log.info("create new Seg ...");
 		//default complex
 		String mode = args.get("mode");
 		if("simple".equals(mode)) {
@@ -55,10 +41,27 @@ public class MMSegTokenizerFactory extends BaseTokenizerFactory implements Resou
 	}
 	
 	public TokenStream create(Reader input) {
+		MMSegTokenizer tokenizer = tokenizerLocal.get();
+		if(tokenizer == null) {
+			tokenizer = newTokenizer(input);
+		} else {
+			try {
+				tokenizer.reset(input);
+			} catch (IOException e) {
+				tokenizer = newTokenizer(input);
+				log.info("MMSegTokenizer.reset i/o error by:"+e.getMessage());
+			}
+		}
 
-		return new MMSegTokenizer(segLocal.get(), input);
+		return tokenizer;
 	}
 
+	private MMSegTokenizer newTokenizer(Reader input) {
+		MMSegTokenizer tokenizer = new MMSegTokenizer(newSeg(getArgs()), input);
+		tokenizerLocal.set(tokenizer);
+		return tokenizer;
+	}
+	
 	public void inform(ResourceLoader loader) {
 		String dicPath = args.get("dicPath");
 		
