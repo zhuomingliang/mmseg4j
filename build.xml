@@ -6,11 +6,9 @@
 
 	<property name="src.java.dir" value="src" />
 	<property name="src.test.dir" value="test" />
-	<property name="src.example.dir" value="example" />
 	<property name="build.dir" value="build" />
 	<property name="build.java.dir" value="build/classes/java" />
 	<property name="build.test.dir" value="build/classes/test" />
-	<property name="build.example.dir" value="build/classes/example" />
 	<property name="build.classes.dir" value="build/classes" />
 	<property name="extlib.dir" value="lib" />
 	<!-- 定义类路径 -->
@@ -20,31 +18,23 @@
 		</fileset>
 		<pathelement location="${build.java.dir}" />
 		<pathelement location="${build.test.dir}" />
-		<pathelement location="${build.example.dir}" />
 	</path>
-
 
 	<target name="init">
 		<mkdir dir="${build.java.dir}" />
 		<mkdir dir="${build.test.dir}" />
-		<mkdir dir="${build.example.dir}" />
 	</target>
 
 	<target name="compile.java" depends="init">
-		<javac destdir="${build.java.dir}" encoding="UTF-8" source="1.5" target="1.5">
+		<javac destdir="${build.java.dir}" 
+			debug="true" debuglevel="lines,source"
+			encoding="UTF-8" source="1.5" target="1.5">
 			<src path="${src.java.dir}" />
 			<classpath refid="project.classpath" />
 		</javac>
 	</target>
 	
-	<target name="compile.example" depends="compile.java">
-		<javac destdir="${build.example.dir}" encoding="UTF-8" source="1.5" target="1.5">
-			<src path="${src.example.dir}" />
-			<classpath refid="project.classpath" />
-		</javac>
-	</target>
-	
-	<target name="compile.test" depends="compile.example">
+	<target name="compile.test" depends="compile.java">
 		<javac destdir="${build.test.dir}" encoding="UTF-8" source="1.5" target="1.5">
 			<src path="${src.test.dir}" />
 			<classpath refid="project.classpath" />
@@ -68,11 +58,8 @@
 		</copy>
 	</target>
 
-	<target name="build.test" depends="compile.test">
-
-	</target>
-	<target name="build" depends="build.java,build.test" />
-
+	<target name="build" depends="build.java,jar" />
+	<target name="rebuild" depends="clean-all,build" />
 	<target name="jar" depends="build.java">
 		<jar destfile="${build.dir}/${project.name}-${version}.jar" basedir="${build.java.dir}" >
 			<manifest>
@@ -86,6 +73,14 @@
 			<fileset dir="${build.classes.dir}">
 				<include name="**/*.class" />
 			</fileset>
+		</delete>
+	</target>
+	<target name="clean-all">
+		<delete includeEmptyDirs="true" failonerror="off">
+			<fileset dir="${build.dir}">
+				<include name="**/*.*"/>
+			</fileset>
+			<fileset dir="${build.classes.dir}"></fileset>
 		</delete>
 	</target>
 </project>

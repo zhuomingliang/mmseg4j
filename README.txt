@@ -34,9 +34,9 @@
       </analyzer>
     </fieldType>
     
-dicPath 指定词库位置（每个MMSegTokenizerFactory可以指定不同的目录），mode 指定分词模式（simple|complex，默认是complex）。
+dicPath 指定词库位置（每个MMSegTokenizerFactory可以指定不同的目录，当是相对目录时，是相对 solr.home 的目录），mode 指定分词模式（simple|complex，默认是complex）。
 
-6、运行，词典用mmseg.dic.path属性指定或在当前目录下的data目录。
+6、运行，词典用mmseg.dic.path属性指定或在当前目录下的data目录，默认是 ./data 目录。
 java -Dmmseg.dic.path=./data -jar mmseg4j-1.0.jar 这里是字符串
 或
 java -cp .;mmseg4j-1.0.jar com.chenlb.mmseg4j.example.Simple 这里是字符串
@@ -45,4 +45,8 @@ java -cp .;mmseg4j-1.0.jar com.chenlb.mmseg4j.example.Simple 这里是字符串
 英文、俄文、希腊、数字（包括①㈠⒈）的分出一连串的。目前版本没有处理小数字问题
 如ⅠⅡⅢ是单字分，字库(chars.dic)中没找到也单字分。
 
-在 solr 1.3 与 lucene 2.4 测试过，如果发现问题或bug与我联系 chenlb2008@gmail.com 。
+8、词库：
+  * data/chars.dic 是单字与语料中的频率，一般不用改动。
+  * data/words.dic 是词库文件，一行一词，当然你也可以使用自己的，也可以使用 sogou 词库，目录是 rmmseg 带的词库。
+
+在 solr 1.3 与 lucene 2.4 测试过，官方博客 http://blog.chenlb.com/topics/category/mmseg4j ， 如果发现问题或bug与我联系 chenlb2008@gmail.com 。
