@@ -78,10 +78,11 @@ public class MMSeg {
 							read = isGreeceLetter(lastData);
 							break;
 						default :
-							read = lastType < 0;
+							read = false;
 							available = false;	//
 							type = -1;
 						}
+						read = lastType < 0 || read;
 						returnWord = true;
 						if(!read) {
 							if(available) {
