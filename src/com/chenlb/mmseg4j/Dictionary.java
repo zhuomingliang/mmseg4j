@@ -32,7 +32,6 @@ public class Dictionary {
 	 * 查找目录顺序:
 	 * <ol>
 	 * <li>从mmseg.dic.path指定的目录中加载</li>
-	 * <li>Dictionary.class所在路径的类根目录下的data目录</li>
 	 * <li>从user.dir/data目录</li>
 	 * </ol>
 	 */
@@ -207,6 +206,13 @@ public class Dictionary {
 			return node.indexOf(tail);
 		}
 		return -1;
+	}
+	
+	/**
+	 * 仅仅用来观察词库.
+	 */
+	public Map<Character, CharNode> getDict() {
+		return dict;
 	}
 	
 	static class DicKey {

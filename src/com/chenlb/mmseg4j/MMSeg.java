@@ -51,6 +51,7 @@ public class MMSeg {
 			int lastType = -1;
 			boolean read = true;
 			boolean returnWord = false;
+			boolean alsoReturnNextData = false;
 			while(read && (data=readNext()) != -1) {
 				int type = Character.getType(data);
 				switch(type) {
@@ -108,6 +109,9 @@ public class MMSeg {
 						bufSentence.appendCodePoint(data);
 						returnWord = false;
 					} else {
+						if(isDigit(lastType) /*&& bufSentence.length() < 5*/ && isChinaYMD(data)) {
+							alsoReturnNextData = true;
+						}
 						nextData = data;
 						read = false;
 					}
@@ -164,7 +168,11 @@ public class MMSeg {
 					chunk.words[0] = new char[bufSentence.length()];
 					bufSentence.getChars(0, bufSentence.length(), chunk.words[0], 0);
 					chunk.setStartOffset(startIdx);
-					
+					if(alsoReturnNextData && nextData > 0) {	//目前只是 年月日
+						chunk.words[1] = new char[1];
+						chunk.words[1][0] = (char) nextData;
+						nextData = -1;
+					}
 					//sb.append(bufSentence);
 					return chunk;
 				} else {
@@ -197,6 +205,10 @@ public class MMSeg {
 			codePoint -= 65248;
 		}
 		return codePoint;
+	}
+	
+	private boolean isChinaYMD(int codePoint) {
+		return codePoint == '年' || codePoint == '月' || codePoint == '日';
 	}
 	
 	private boolean isAsciiLetter(int codePoint) {
