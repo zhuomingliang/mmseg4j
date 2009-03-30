@@ -41,24 +41,38 @@ public abstract class Seg {
 		char[] subChs = new char[len];
 		System.arraycopy(chs, offset+1, subChs, 0, len);
 		return dic.search(cn, subChs);*/
-		return search(cn, chs, offset, len);
+		return search(cn, chs, offset, len, new char[1][], 0);
 	}
 	
 	/**
-	 * 从 cn 结果下找chs[offset]后面len个字符.
+	 * 从 cn 结果下找chs[offset]后面tailLenlen个字符.
+	 * @param cks 复制到 cks[ckIdx] 中, 它可能是一个词, 生成 Chunk 时就不用在 System.arraycopy 了
 	 * @return 返回chs[offset]字符结点下的词尾索引号,没找到返回 -1.
 	 * @author chenlb 2009-3-29 下午01:31:16
 	 */
-	protected int search(CharNode cn, char[] chs, int offset, int len) {
-		if(len == 0) {
+	protected int search(CharNode cn, char[] chs, int offset, int tailLen, char[][] cks, int ckIdx) {
+		if(tailLen == 0) {
+			if(offset < chs.length) {
+				cks[ckIdx] = new char[1];
+				cks[ckIdx][0] = chs[offset];
+			} else {
+				cks[ckIdx] = null;
+			}
 			return -1;
 		}
 		
 		if(cn == null) {
+			if(offset < chs.length) {
+				cks[ckIdx] = new char[1];
+				cks[ckIdx][0] = chs[offset];
+			} else {
+				cks[ckIdx] = null;
+			}
 			return -1;
 		}
-		char[] subChs = new char[len];
-		System.arraycopy(chs, offset+1, subChs, 0, len);
+		char[] subChs = new char[tailLen+1];
+		System.arraycopy(chs, offset, subChs, 0, tailLen+1);
+		cks[ckIdx] = subChs;
 		return dic.search(cn, subChs);
 	}
 	/**

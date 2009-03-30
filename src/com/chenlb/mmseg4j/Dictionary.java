@@ -201,9 +201,9 @@ public class Dictionary {
 		return dict.get(ch);
 	}
 	
-	public int search(CharNode node, char[] tail) {
+	public int search(CharNode node, char[] word) {
 		if(node != null) {
-			return node.indexOf(tail);
+			return node.indexOf(word);
 		}
 		return -1;
 	}

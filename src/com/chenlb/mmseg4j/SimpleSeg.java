@@ -19,11 +19,12 @@ public class SimpleSeg extends Seg{
 			int maxLen = 0;
 			int[] maxAvailableLen = {0};
 			CharNode[] cns = new CharNode[1];
+			char[][] cks = new char[1][];
 			for(int len : getLens(cns, 0, chs, offset, maxAvailableLen, 0)) {
 				if(len > maxAvailableLen[0]) {	//len不合格
 					continue;
 				}
-				int idx = search(cns[0], chs, offset, len);
+				int idx = search(cns[0], chs, offset, len, cks, 0);
 				if(idx > -1) {
 					maxLen = len;
 					break;
@@ -32,9 +33,9 @@ public class SimpleSeg extends Seg{
 			}
 
 			//len == 0 说明没找到, 但还要单个输出
-			char[] ck = new char[maxLen+1];
-			System.arraycopy(chs, offset, ck, 0, maxLen+1);
-			chunk.words[k] = ck;
+			/*char[] ck = new char[maxLen+1];
+			System.arraycopy(chs, offset, ck, 0, maxLen+1);*/
+			chunk.words[k] = cks[0];	//ck;
 			if(k==0) {	//第一个词
 				chunk.setStartOffset(sen.getStartOffset()+offset);
 			}
