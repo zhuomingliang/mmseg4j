@@ -16,6 +16,7 @@ public class DictionaryTest extends TestCase {
 		Dictionary dic = new Dictionary();
 		dic = new Dictionary();
 		dic = new Dictionary("data");
+		dic = new Dictionary("sogou");
 	}
 
 	public void testMatch() {

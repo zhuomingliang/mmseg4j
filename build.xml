@@ -56,6 +56,8 @@
 				<exclude name="**/*.java" />
 			</fileset>
 		</copy>
+		<copy file="data/chars.dic" todir="${build.java.dir}/data" preservelastmodified="true">
+		</copy>
 	</target>
 
 	<target name="build" depends="build.java,jar" />

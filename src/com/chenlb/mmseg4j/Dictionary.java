@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -95,11 +96,18 @@ public class Dictionary {
 	}
 	
 	private Map<Character, CharNode> init(File charsFile, File wordsFile) throws IOException {
+		InputStream charsIn = null;
+		if(charsFile.exists()) {
+			charsIn = new FileInputStream(charsFile);
+		} else {	//从 jar 里加载
+			charsIn = this.getClass().getResourceAsStream("/data/chars.dic");
+			charsFile = new File(this.getClass().getResource("/data/chars.dic").getFile());	//only for log
+		}
 		final Map<Character, CharNode> dic = new HashMap<Character, CharNode>();
 		int lineNum = 0;
 		long s = now();
 		long ss = s;
-		lineNum = load(charsFile, new FileLoading() {	//单个字的
+		lineNum = load(charsIn, new FileLoading() {	//单个字的
 
 			public void row(String line, int n) {
 				if(line == null || line.startsWith("#") || line.length() < 1) {
@@ -123,7 +131,7 @@ public class Dictionary {
 		log.info("chars loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+charsFile);
 
 		s = now();
-		lineNum = load(wordsFile, new FileLoading() {//正常的词库
+		lineNum = load(new FileInputStream(wordsFile), new FileLoading() {//正常的词库
 
 			public void row(String line, int n) {
 				if(line == null || line.startsWith("#") || line.length() < 2) {
@@ -154,9 +162,9 @@ public class Dictionary {
 	 * 加载词文件的模板
 	 * @return 文件总行数
 	 */
-	private int load(File file, FileLoading loading) throws IOException {
+	private int load(InputStream fin, FileLoading loading) throws IOException {
 		BufferedReader br = new BufferedReader(
-				new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8"));
+				new InputStreamReader(new BufferedInputStream(fin), "UTF-8"));
 		String line = null;
 		int n = 0;
 		while((line = br.readLine()) != null) {
@@ -194,7 +202,7 @@ public class Dictionary {
 			return false;
 		}
 		CharNode cn = dict.get(word.charAt(0));
-		return search(cn, tail(word)) >= 0;
+		return search(cn, word.toCharArray()) >= 0;
 	}
 	
 	public CharNode head(char ch) {
