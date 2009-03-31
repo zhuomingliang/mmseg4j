@@ -1,9 +1,22 @@
 package com.chenlb.mmseg4j;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import junit.framework.TestCase;
 
@@ -103,5 +116,52 @@ public class Test extends TestCase {
 			sb.append(", hex=").append(Integer.toHexString(cp));
 			System.out.println(sb);
 		}
+	}
+	
+	private static long now() {
+		return System.currentTimeMillis();
+	}
+	
+	public void testSeeSogouDic() throws IOException {
+		Dictionary dic = new Dictionary("sogou");
+		Map<Character, CharNode> dict = dic.getDict();
+		long start = now();
+		List<Map.Entry<Character, CharNode>> es = new ArrayList<Map.Entry<Character,CharNode>>(dict.size());
+		es.addAll(dict.entrySet());
+		System.out.println("add use "+(now()-start)+"ms");
+		start = now();
+		Collections.sort(es, new Comparator<Map.Entry<Character, CharNode>>() {
+
+			public int compare(Entry<Character, CharNode> a,
+					Entry<Character, CharNode> b) {
+				int r = -new Integer(a.getValue().getMaxLen()).compareTo(b.getValue().getMaxLen());
+				if(r == 0) {
+					r = -new Integer(a.getValue().wordNum()).compareTo(b.getValue().wordNum());
+				}
+				if(r == 0) {
+					r = -new Integer(a.getValue().getFreq()).compareTo(b.getValue().getFreq());
+				}
+				return r;
+			}
+			
+		});
+		System.out.println("sort use "+(now()-start)+"ms");
+		start = now();
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("sogou/word-stat.txt")), "UTF-8"));
+		writer.append("char").append('\t')
+		.append("freq").append('\t')
+		.append("maxLen").append('\t')
+		.append("wordNum").append('\t')
+		.append("lens").append("\r\n");
+		for(Map.Entry<Character, CharNode> e : es) {
+			CharNode cn = e.getValue();
+			writer.append(e.getKey()).append('\t')
+				.append(cn.getFreq()+"").append('\t')
+				.append(cn.getMaxLen()+"").append('\t')
+				.append(cn.wordNum()+"").append('\t')
+				.append(Arrays.toString(cn.getLens())).append("\r\n");
+		}
+		writer.close();
+		System.out.println("writer use "+(now()-start)+"ms");
 	}
 }

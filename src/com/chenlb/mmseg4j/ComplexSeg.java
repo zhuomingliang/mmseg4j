@@ -11,7 +11,7 @@ import com.chenlb.mmseg4j.rule.SmallestVarianceRule;
 
 
 /**
- * 
+ * 正向最大匹配, 加四个过虑规则的分词方式.
  * 
  * @author chenlb 2009-3-16 下午09:15:26
  */
@@ -19,6 +19,8 @@ public class ComplexSeg extends Seg{
 
 	private MaxMatchRule mmr = new MaxMatchRule();
 	private List<Rule> otherRules = new ArrayList<Rule>();
+	
+	private static boolean showChunk = false;
 	
 	public ComplexSeg(Dictionary dic) {
 		super(dic);
@@ -28,59 +30,77 @@ public class ComplexSeg extends Seg{
 	}
 	
 	public Chunk seg(Sentence sen) {
-		//int offset = 0;
 		char[] chs = sen.getText();
-		int[] w = new int[3];
-		int[] offsets = new int[3];
+		int[] tailLen = new int[3];	//记录词的尾长
+		int[] maxTailLen = new int[3];	//记录词尾部允许的长度
+		CharNode[] cns = new CharNode[3];
+		char[][] cks = new char[3][];
+		int[] offsets = new int[3];	//每个词在sen的开始位置
 		mmr.reset();
-		if(sen.getOffset() < chs.length) {
-			//System.out.println();
-			int maxLen = 3;
+		if(!sen.isFinish()) {	//sen.getOffset() < chs.length
+			if(showChunk) {
+				System.out.println();
+			}
+			int maxLen = 0;
 			offsets[0] = sen.getOffset();
-			for(w[0]=maxLen(chs, offsets[0]); w[0]>=0; w[0]--) {
-				int idx = search(chs, offsets[0], w[0]);
-				if(idx > -1 || w[0]==0) {	//idx > -1 找到, w[0]==0单个字
-					offsets[1] = offsets[0]+1+w[0];
-					for(w[1]=maxLen(chs, offsets[1]); w[1]>=0; w[1]--) {
-						idx = search(chs, offsets[1], w[1]);
-						if(idx > -1 || w[1]==0) {
-							offsets[2] = offsets[1]+1+w[1];
-							for(w[2]=maxLen(chs, offsets[2]); w[2]>=0; w[2]--) {
-								idx = search(chs, offsets[2], w[2]);
-								if(idx > -1 || w[2]==0) {	//有chunk
-									Chunk ck = new Chunk();
-									ck.setStartOffset(sen.getStartOffset()+offsets[0]);
-									int len = 0;
+			/*
+			 * 遍历所有不同词长,还不是从最大到0(w[0]=maxLen(chs, offsets[0]); w[0]>=0; w[0]--)
+			 * 可以减少一部分多余的查找.
+			 */
+			for(int aLen : getLens(cns, 0, chs, offsets[0], maxTailLen, 0)) {
+				if(aLen > maxTailLen[0]) {	//aLen不合格(是句子未处理的长度小于aLen)
+					continue;
+				}
+				tailLen[0] = aLen;
+				int idx = search(cns[0], chs, offsets[0], tailLen[0], cks, 0);
+				if(idx > -1 || tailLen[0]==0) {	//idx > -1 找到, tailLen[0]==0单个字
+					offsets[1] = offsets[0]+1+tailLen[0];	//第二个词的开始位置
+					for(int bLen : getLens(cns, 1, chs, offsets[1], maxTailLen, 1)) {
+						if(bLen > maxTailLen[1]) {
+							continue;
+						}
+						tailLen[1] = bLen;
+						idx = search(cns[1], chs, offsets[1], tailLen[1], cks, 1);
+						if(idx > -1 || tailLen[1]==0) {
+							offsets[2] = offsets[1]+1+tailLen[1];
+							for(int cLen : getLens(cns, 2, chs, offsets[2], maxTailLen, 2)) {
+								if(cLen > maxTailLen[2]) {
+									continue;
+								}
+								tailLen[2] = cLen;
+								idx = search(cns[2], chs, offsets[2], tailLen[2], cks, 2);
+								if(idx > -1 || tailLen[2]==0) {	//有chunk
+									int sumChunkLen = 0;
 									for(int i=0; i<3; i++) {
-										len += w[i]+1;
-
-										if(offsets[i] < chs.length) {
-											ck.words[i] = new char[w[i]+1];
-											System.arraycopy(chs, offsets[i], ck.words[i], 0, w[i]+1);
-											if(w[i] == 0) {
-												CharNode cn = dic.head(chs[offsets[i]]);
-												if(cn !=null) {
-													ck.degrees[i] = cn.getFreq();
-												}
-											}
+										sumChunkLen += tailLen[i]+1;
+									}
+									Chunk ck = null;
+									if(sumChunkLen >= maxLen) {
+										maxLen = sumChunkLen;	//下一个chunk块的开始位置增量
+										ck = createChunk(sen, chs, tailLen, offsets, cns, cks);
+										mmr.addChunk(ck);
+										
+									}
+									if(showChunk) {
+										if(ck == null) {
+											ck = createChunk(sen, chs, tailLen, offsets, cns, cks);
+											mmr.addChunk(ck);
 										}
+										System.out.println(ck);
 									}
-									if(len > maxLen) {
-										maxLen = len;
-									}
-									mmr.addChunk(ck);
-									//System.out.println(ck);
 								}
 							}
 						}
 					}
 				}
 			}
-			sen.addOffset(maxLen);
+			sen.addOffset(maxLen);	//maxLen个字符已经处理完
 			List<Chunk> chunks = mmr.remainChunks();
-			for(Rule rule : otherRules) {
-				//System.out.println("-------filter before "+rule+"----------");
-				//printChunk(chunks);
+			for(Rule rule : otherRules) {	//其它规则过虑
+				if(showChunk) {
+					System.out.println("-------filter before "+rule+"----------");
+					printChunk(chunks);
+				}
 				if(chunks.size() > 1) {
 					rule.reset();
 					rule.addChunks(chunks);
@@ -89,40 +109,42 @@ public class ComplexSeg extends Seg{
 					break;
 				}
 			}
-			//System.out.println("-------remainChunks----------");
-			//printChunk(chunks);
+			if(showChunk) {
+				System.out.println("-------remainChunks----------");
+				printChunk(chunks);
+			}
 			if(chunks.size() > 0) {
 				return chunks.get(0);
 			}
 		}
 		return null;
 	}
-	
-	@SuppressWarnings("unused")
-	private void printChunk(List<Chunk> chunks) {// for debug
-		for(Chunk ck : chunks) {
-			System.out.println(ck+" -> "+ck.toFactorString());
+
+	private Chunk createChunk(Sentence sen, char[] chs, int[] tailLen, int[] offsets, CharNode[] cns, char[][] cks) {
+		Chunk ck = new Chunk();
+		ck.setStartOffset(sen.getStartOffset()+offsets[0]);
+		for(int i=0; i<3; i++) {
+
+			if(offsets[i] < chs.length) {
+				/*ck.words[i] = new char[tailLen[i]+1];
+				System.arraycopy(chs, offsets[i], ck.words[i], 0, tailLen[i]+1);*/
+				ck.words[i] = cks[i];
+				if(tailLen[i] == 0) {	//单字的要取得"字频计算出自由度"
+					CharNode cn = cns[i];	//dic.head(chs[offsets[i]]);
+					if(cn !=null) {
+						ck.degrees[i] = cn.getFreq();
+					}
+				}
+			}
 		}
+		return ck;
 	}
 	
-	private int search(char[] chs, int offset, int len) {
-		if(len == 0) {
-			return -1;
-		}
-		CharNode cn = dic.head(chs[offset]);
-		char[] subChs = new char[len];
-		System.arraycopy(chs, offset+1, subChs, 0, len);
-		return dic.search(cn, subChs);
+	public static boolean isShowChunk() {
+		return showChunk;
 	}
-	
-	private int maxLen(char[] chs, int offset) {
-		if(offset >= chs.length) {
-			return 0;
-		}
-		CharNode cn = dic.head(chs[offset]);
-		if(cn == null) {
-			return 0;
-		}
-		return Math.min(cn.getMaxLen(), chs.length-offset-1);
+
+	public static void setShowChunk(boolean showChunk) {
+		ComplexSeg.showChunk = showChunk;
 	}
 }

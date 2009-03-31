@@ -18,9 +18,9 @@ public class ComplexSegTest extends TestCase {
 		txt = "国际化";
 		//txt = "中国";
 		//txt = "我";
-		txt = "受一股来自中西伯利亚的强冷空气影响";
-		
-		ComplexSeg seg = new ComplexSeg(new Dictionary());
+		txt = "各人发表关于受一股来自中西伯利亚的强冷空气影响";
+		ComplexSeg.setShowChunk(true);
+		ComplexSeg seg = new ComplexSeg(new Dictionary("sogou"));
 		Sentence sen = new Sentence(txt.toCharArray(), 0);
 		System.out.println();
 		while(!sen.isFinish()) {
