@@ -15,6 +15,7 @@ import com.chenlb.mmseg4j.Dictionary;
 import com.chenlb.mmseg4j.MMSeg;
 import com.chenlb.mmseg4j.Seg;
 import com.chenlb.mmseg4j.SimpleSeg;
+import com.chenlb.mmseg4j.Chunk.Word;
 
 public class Performance {
 
@@ -56,11 +57,11 @@ public class Performance {
 			BufferedWriter bw = new BufferedWriter(osw);
 			long start = System.currentTimeMillis();
 			while((chunk=mmSeg.next())!=null) {
-				int offset = chunk.getStartOffset();
-				for(char[] word : chunk.getWords()) {
+				//int offset = chunk.getStartOffset();
+				for(Word word : chunk.getWords()) {
 					if(word != null) {
-						bw.append(new String(word)).append("\r\n");
-						offset += word.length;
+						bw.append(new String(word.getWord())).append("\r\n");
+						//offset += word.length;
 						
 					}
 				}

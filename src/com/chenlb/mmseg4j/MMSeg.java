@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
+import com.chenlb.mmseg4j.Chunk.Word;
+
 public class MMSeg {
 	
 	private Reader reader;
@@ -13,7 +15,7 @@ public class MMSeg {
 	private Sentence currentSentence;
 	
 	public MMSeg(Reader input, Seg seg) {
-		this.reader = new BufferedReader(input, 2048);
+		this.reader = new BufferedReader(input);
 		this.seg = seg;
 	}
 
@@ -109,7 +111,7 @@ public class MMSeg {
 						bufSentence.appendCodePoint(data);
 						returnWord = false;
 					} else {
-						if(isDigit(lastType) /*&& bufSentence.length() < 5*/ && isChinaYMD(data)) {
+						if(isDigit(lastType) && seg.isUnit(data)) {
 							alsoReturnNextData = true;
 						}
 						nextData = data;
@@ -165,12 +167,14 @@ public class MMSeg {
 				int startIdx = readedIdx - bufSentence.length();
 				if(returnWord) {
 					chunk = new Chunk();
-					chunk.words[0] = new char[bufSentence.length()];
-					bufSentence.getChars(0, bufSentence.length(), chunk.words[0], 0);
-					chunk.setStartOffset(startIdx);
+					char[] word = new char[bufSentence.length()];
+					bufSentence.getChars(0, bufSentence.length(), word, 0);
+					chunk.words[0] = new Word(word, startIdx);
+					//chunk.setStartOffset(startIdx);
 					if(alsoReturnNextData && nextData > 0) {	//目前只是 年月日
-						chunk.words[1] = new char[1];
-						chunk.words[1][0] = (char) nextData;
+						char[] w = new char[1];
+						w[0] = (char) nextData;
+						chunk.words[1] = new Word(w, startIdx+word.length);
 						nextData = -1;
 					}
 					//sb.append(bufSentence);
@@ -205,10 +209,6 @@ public class MMSeg {
 			codePoint -= 65248;
 		}
 		return codePoint;
-	}
-	
-	private boolean isChinaYMD(int codePoint) {
-		return codePoint == '年' || codePoint == '月' || codePoint == '日';
 	}
 	
 	private boolean isAsciiLetter(int codePoint) {

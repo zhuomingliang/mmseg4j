@@ -2,9 +2,9 @@ package com.chenlb.mmseg4j;
 
 import java.io.File;
 
-import com.chenlb.mmseg4j.Dictionary.DicKey;
-
 import junit.framework.TestCase;
+
+import com.chenlb.mmseg4j.Dictionary.DicKey;
 
 public class DictionaryTest extends TestCase {
 
@@ -14,11 +14,20 @@ public class DictionaryTest extends TestCase {
 
 	public void loadDic() {
 		Dictionary dic = new Dictionary();
+		System.out.println("load match");
 		dic = new Dictionary();
+		System.out.println("load data");
 		dic = new Dictionary("data");
+		System.out.println("load sogou");
 		dic = new Dictionary("sogou");
 	}
 
+	public void loadMultiDic() {
+		Dictionary dic = new Dictionary();
+		
+		assertTrue(dic.match("白云山"));
+	}
+	
 	public void testMatch() {
 		Dictionary dic = new Dictionary();
 		
@@ -41,13 +50,13 @@ public class DictionaryTest extends TestCase {
 	}
 	
 	public void testDicKey() {
-		DicKey dk = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data/chars.dic", "data/words.dic");
-		DicKey dk2 = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data/chars.dic", "M:/eclipse 3.3.2/workspace/mmseg4j/data/words.dic");
+		DicKey dk = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data");
+		DicKey dk2 = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data/");
 		
 		assertFalse(dk.equals(dk2));
 		assertTrue(dk2.equals(dk2));
 		
-		dk = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data/chars.dic", "M:/eclipse 3.3.2/workspace/mmseg4j/data/words.dic");
+		dk = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data/");
 		assertTrue(dk.equals(dk2));
 	}
 }

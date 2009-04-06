@@ -11,6 +11,7 @@ import com.chenlb.mmseg4j.ComplexSeg;
 import com.chenlb.mmseg4j.Dictionary;
 import com.chenlb.mmseg4j.MMSeg;
 import com.chenlb.mmseg4j.Seg;
+import com.chenlb.mmseg4j.Chunk.Word;
 
 public class MMSegTokenizer extends Tokenizer {
 
@@ -37,14 +38,14 @@ public class MMSegTokenizer extends Tokenizer {
 	
 	private Chunk chunk = null;
 	private int wordIdx = 0;
-	private int startOffset = 0;
+	//private int startOffset = 0;
 	
 	public void reset(Reader input) throws IOException {
 		super.reset(input);
 		mmSeg.reset(this.input);
 		chunk = null;
 		wordIdx = 0;
-		startOffset = 0;
+		//startOffset = 0;
 	}
 
 	public Token next(Token reusableToken) throws IOException {
@@ -54,17 +55,19 @@ public class MMSegTokenizer extends Tokenizer {
 			wordIdx = 0;
 			
 			if(chunk != null) {
-				startOffset = chunk.getStartOffset();
+				//startOffset = chunk.getStartOffset();
 			} else {
 				return null;
 			}
 		}
 		
 		if(wordIdx < chunk.getCount()) {
-			char[] word = chunk.getWords()[wordIdx++];
-			
-			token = reusableToken.reinit(word, 0, word.length, startOffset, startOffset+word.length);
-			startOffset += word.length;
+			Word word = chunk.getWords()[wordIdx++];
+			//if(word != null) {
+				token = reusableToken.reinit(word.getWord(), 0, word.getLength(), word.getStartOffset(), word.getEndOffset());
+				//chunk = null;
+				//break;
+			//}
 		}
 		
 		if(wordIdx >= chunk.getCount()) {

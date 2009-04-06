@@ -5,6 +5,8 @@ import java.io.StringReader;
 
 import junit.framework.TestCase;
 
+import com.chenlb.mmseg4j.Chunk.Word;
+
 public class MMSegTest extends TestCase {
 
 	protected void setUp() throws Exception {
@@ -24,12 +26,12 @@ public class MMSegTest extends TestCase {
 		Chunk chunk = null;
 		System.out.println();
 		while((chunk=mmSeg.next())!=null) {
-			int offset = chunk.getStartOffset();
-			for(char[] word : chunk.words) {
+			//int offset = chunk.getStartOffset();
+			for(Word word : chunk.words) {
 				if(word != null) {
-					System.out.print(new String(word)+" -> "+offset);
-					offset += word.length;
-					System.out.println(", "+offset);
+					System.out.print(new String(word.getWord())+" -> "+word.startOffset);
+					//offset += word.length;
+					System.out.println(", "+word.getEndOffset());
 				}
 			}
 		}

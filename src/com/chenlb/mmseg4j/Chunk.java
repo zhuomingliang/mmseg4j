@@ -1,17 +1,17 @@
 package com.chenlb.mmseg4j;
 
 /**
- * 
+ * 它是MMSeg分词算法中一个关键的概念。Chunk中包含依据上下文分出的一组词和相关的属性，包括长度(Length)、平均长度(Average Length)、标准差的平方(Variance)和自由语素度(Degree Of Morphemic Freedom)。
  * 
  * @author chenlb 2009-3-16 上午11:39:42
  */
 public class Chunk {
 
-	char[][] words = new char[3][];
-	int[] degrees = {-1, -1, -1};
+	Word[] words = new Word[3];
+	
 	private int startOffset;
 	
-	private int count = -1;
+	int count = -1;
 	
 	/** Word Length */
 	private int len = -1;
@@ -27,9 +27,9 @@ public class Chunk {
 		if(len < 0) {
 			len = 0;
 			count = 0;
-			for(char[] word : words) {
+			for(Word word : words) {
 				if(word != null) {
-					len += word.length;
+					len += word.getLength();
 					count++;
 				}
 			}
@@ -41,7 +41,7 @@ public class Chunk {
 	public int getCount() {
 		if(count < 0) {
 			count = 0;
-			for(char[] word : words) {
+			for(Word word : words) {
 				if(word != null) {
 					count++;
 				}
@@ -62,9 +62,9 @@ public class Chunk {
 	public double getVariance() {
 		if(variance < 0) {
 			double sum = 0;
-			for(char[] word : words) {
+			for(Word word : words) {
 				if(word != null) {
-					sum += Math.pow(word.length-getAvgLen(), 2);
+					sum += Math.pow(word.getLength()-getAvgLen(), 2);
 				}
 			}
 			variance = sum/getCount();
@@ -76,9 +76,9 @@ public class Chunk {
 	public int getSumDegree() {
 		if(sumDegree < 0) {
 			int sum = 0;
-			for(int degree : degrees) {
-				if(degree > -1) {
-					sum += degree;
+			for(Word word : words) {
+				if(word != null && word.degree > -1) {
+					sum += word.degree;
 				}
 			}
 			sumDegree = sum;
@@ -89,9 +89,9 @@ public class Chunk {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for(char[] word : words) {
+		for(Word word : words) {
 			if(word != null) {
-				sb.append(word).append('_');
+				sb.append(word.word).append('_');
 			}
 		}
 		return sb.toString();
@@ -107,6 +107,42 @@ public class Chunk {
 		return sb.toString();
 	}
 
+	public static class Word {
+		char[] word;
+		int degree = -1;
+		int startOffset;
+		
+		/**
+		 * @param startOffset word 在文本中的偏移位置
+		 */
+		public Word(char[] word, int startOffset) {
+			super();
+			this.word = word;
+			this.startOffset = startOffset;
+		}
+		
+		public int getLength() {
+			return word.length;
+		}
+		
+		public char[] getWord() {
+			return word;
+		}
+
+		public int getStartOffset() {
+			return startOffset;
+		}
+		public int getEndOffset() {
+			return startOffset + word.length;
+		}
+		public int getDegree() {
+			return degree;
+		}
+		public void setDegree(int degree) {
+			this.degree = degree;
+		}
+	}
+	
 	/** chunk 中第一个词在文本中的偏移位置 */
 	public int getStartOffset() {
 		return startOffset;
@@ -117,7 +153,7 @@ public class Chunk {
 		this.startOffset = startOffset;
 	}
 
-	public char[][] getWords() {
+	public Word[] getWords() {
 		return words;
 	}
 }

@@ -3,28 +3,23 @@ package com.chenlb.mmseg4j.example;
 import java.io.IOException;
 
 import com.chenlb.mmseg4j.Dictionary;
+import com.chenlb.mmseg4j.MaxWordSeg;
 import com.chenlb.mmseg4j.Seg;
-import com.chenlb.mmseg4j.SimpleSeg;
 
-/**
- * 
- * 
- * @author chenlb 2009-3-14 上午12:38:40
- */
-public class Simple extends Complex {
+public class MaxWord extends Complex {
 
-	public Simple() {
+	public MaxWord() {
 		super();
 	}
-	
-	public Simple(Dictionary dic) {
+
+	public MaxWord(Dictionary dic) {
 		super(dic);
 	}
-	
+
 	@Override
 	protected Seg getSeg() {
 
-		return new SimpleSeg(dic);
+		return new MaxWordSeg(dic);
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -35,9 +30,7 @@ public class Simple extends Complex {
 		}
 		
 		//txt = "today,…………i'am chenlb,<《公主小妹》>?我@$#%&*()$!!,";
-		
-		Simple simple = new Simple();
-		System.out.println(simple.segWords(txt, " | "));
+		MaxWord maxWord = new MaxWord();
+		System.out.println(maxWord.segWords(txt, " | "));
 	}
-
 }

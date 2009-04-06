@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,12 +22,16 @@ import java.util.logging.Logger;
  */
 public class Dictionary {
 
-	static final Logger log = Logger.getLogger(Dictionary.class.getName());
+	private static final Logger log = Logger.getLogger(Dictionary.class.getName());
 	
+	private File dicPath;	//词库目录
 	private Map<Character, CharNode> dict;// = new HashMap<Character, CharNode>();
+	private Map<Character, Object> unit;	//单个字的单位
 	
-	private static final DicKey defaultDicKey = new DicKey("", "");
-	private static final Map<DicKey, Map<Character, CharNode>> dics = new ConcurrentHashMap<DicKey, Map<Character, CharNode>>();
+	private static File defalutPath = null;	//DicKey defaultDicKey = new DicKey("", "", Mode.MAX_WORD);
+	private static final Map<File, Map<Character, CharNode>> dics = new ConcurrentHashMap<File, Map<Character, CharNode>>();
+	private static final Map<File, Map<Character, Object>> units = new ConcurrentHashMap<File, Map<Character, Object>>();
+	private static Map<Character, Object> defaultUnit = null;	//默认的单个字的单位
 	
 	/**
 	 * 加载chars.dic,words.dic文件.<p/>
@@ -37,28 +42,7 @@ public class Dictionary {
 	 * </ol>
 	 */
 	public Dictionary() {
-		Map<Character, CharNode> dic = dics.get(defaultDicKey);
-		if(dic == null) {
-			String defPath = System.getProperty("mmseg.dic.path");
-			log.info("look up in mmseg.dic.path="+defPath);
-			if(defPath == null) {
-				defPath = System.getProperty("user.dir")+"/data";
-				log.info("look up in user.dir="+defPath);
-				
-			}
-			
-			File path = new File(defPath);
-			//if(!path.exists()) {
-			//	defPath = Dictionary.class.getResource("/data").getFile();
-			//	log.info("look up in Dictionary.class '/data' path="+defPath);
-				path = new File(defPath);
-			//}
-			init(path);
-			
-			dics.put(defaultDicKey, dict);
-		} else {
-			dict = dic;
-		}
+		init(getDefalutPath());
 	}
 	
 	/**
@@ -76,16 +60,27 @@ public class Dictionary {
 	}
 	
 	private void init(File path) {
+		dicPath = path;
 		try {
-			File charsFile = new File(path, "chars.dic");
-			File wordsFile = new File(path, "words.dic");
-			DicKey dk = new DicKey(charsFile.getAbsolutePath(), wordsFile.getAbsolutePath());
-			Map<Character, CharNode> dic = dics.get(dk);
+			//DicKey dk = new DicKey(path.getAbsolutePath());
+			Map<Character, CharNode> dic = dics.get(path);
 			if(dic == null) {
-				dic = init(charsFile, wordsFile);
-				dics.put(dk, dic);
+				dic = loadDic(path);
+				dics.put(path, dic);
 			}
 			dict = dic;
+			//加载单字的单位文件
+			Map<Character, Object> un = units.get(path);
+			if(un == null) {
+				File unitFile = new File(path, "units.dic");
+				if(unitFile.exists()) {
+					un = loadUnit(new FileInputStream(unitFile), unitFile);
+				} else {
+					un = getDefaultUnit();
+				}
+				units.put(path, un);
+			}
+			unit = un;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -95,8 +90,9 @@ public class Dictionary {
 		return System.currentTimeMillis();
 	}
 	
-	private Map<Character, CharNode> init(File charsFile, File wordsFile) throws IOException {
+	private Map<Character, CharNode> loadDic(/*File charsFile,*/ File wordsPath) throws IOException {
 		InputStream charsIn = null;
+		File charsFile = new File(wordsPath, "chars.dic");
 		if(charsFile.exists()) {
 			charsIn = new FileInputStream(charsFile);
 		} else {	//从 jar 里加载
@@ -110,7 +106,7 @@ public class Dictionary {
 		lineNum = load(charsIn, new FileLoading() {	//单个字的
 
 			public void row(String line, int n) {
-				if(line == null || line.startsWith("#") || line.length() < 1) {
+				if(line.length() < 1) {
 					return;
 				}
 				String[] w = line.split(" ");
@@ -130,23 +126,34 @@ public class Dictionary {
 		});
 		log.info("chars loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+charsFile);
 
-		s = now();
-		lineNum = load(new FileInputStream(wordsFile), new FileLoading() {//正常的词库
+		File[] wordsFiles = wordsPath.listFiles(new FilenameFilter() {
 
-			public void row(String line, int n) {
-				if(line == null || line.startsWith("#") || line.length() < 2) {
-					return;
-				}
-				CharNode cn = dic.get(line.charAt(0));
-				if(cn == null) {
-					cn = new CharNode();
-					dic.put(line.charAt(0), cn);
-				}
-				cn.addWordTail(tail(line));
+			public boolean accept(File dir, String name) {
+				
+				return name.startsWith("words") && name.endsWith(".dic");
 			}
 			
 		});
-		log.info("words loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+wordsFile);
+		
+		for(File wordsFile : wordsFiles) {
+			s = now();
+			lineNum = load(new FileInputStream(wordsFile), new FileLoading() {//正常的词库
+
+				public void row(String line, int n) {
+					if(line.length() < 2) {
+						return;
+					}
+					CharNode cn = dic.get(line.charAt(0));
+					if(cn == null) {
+						cn = new CharNode();
+						dic.put(line.charAt(0), cn);
+					}
+					cn.addWordTail(tail(line));
+				}
+				
+			});
+			log.info("words loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+wordsFile);
+		}
 		
 		//sort
 		s = now();
@@ -158,16 +165,38 @@ public class Dictionary {
 		return dic;
 	}
 	
+	private static Map<Character, Object> loadUnit(final InputStream fin, File unitFile) throws IOException {
+		
+		final Map<Character, Object> unit = new HashMap<Character, Object>(); 
+		
+		long s = now();
+		int lineNum = load(fin, new FileLoading() {
+
+			public void row(String line, int n) {
+				if(line.length() != 1) {
+					return;
+				}
+				unit.put(line.charAt(0), Dictionary.class);
+			}
+		});
+		log.info("unit loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+unitFile);
+
+		return unit;
+	}
+	
 	/**
 	 * 加载词文件的模板
 	 * @return 文件总行数
 	 */
-	private int load(InputStream fin, FileLoading loading) throws IOException {
+	private static int load(InputStream fin, FileLoading loading) throws IOException {
 		BufferedReader br = new BufferedReader(
 				new InputStreamReader(new BufferedInputStream(fin), "UTF-8"));
 		String line = null;
 		int n = 0;
 		while((line = br.readLine()) != null) {
+			if(line == null || line.startsWith("#")) {
+				continue;
+			}
 			n++;
 			loading.row(line, n);
 		}
@@ -209,11 +238,51 @@ public class Dictionary {
 		return dict.get(ch);
 	}
 	
+	/**
+	 * word 能否在词库里找到
+	 * @return 没找到返回-1, node 为 null 返回-1.
+	 */
 	public int search(CharNode node, char[] word) {
 		if(node != null) {
 			return node.indexOf(word);
 		}
 		return -1;
+	}
+	
+	public boolean isUnit(Character ch) {
+		return unit.containsKey(ch);
+	}
+	
+	public static File getDefalutPath() {
+		if(defalutPath == null) {
+			String defPath = System.getProperty("mmseg.dic.path");
+			log.info("look up in mmseg.dic.path="+defPath);
+			if(defPath == null) {
+				defPath = System.getProperty("user.dir")+"/data";
+				log.info("look up in user.dir="+defPath);
+				
+			}
+			
+			defalutPath = new File(defPath);
+		}
+		return defalutPath;
+	}
+	
+	/**
+	 * 在jar包里的/data/unit.dic
+	 * @author chenlb 2009-4-6 下午12:47:27
+	 */
+	public static Map<Character, Object> getDefaultUnit() {
+		if(defaultUnit == null) {
+			InputStream fin = Dictionary.class.getResourceAsStream("/data/units.dic");
+			File unitFile = new File(Dictionary.class.getResource("/data/units.dic").getFile());
+			try {
+				defaultUnit = loadUnit(fin, unitFile);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return defaultUnit;
 	}
 	
 	/**
@@ -223,11 +292,17 @@ public class Dictionary {
 		return dict;
 	}
 	
+	public File getDicPath() {
+		return dicPath;
+	}
+	
 	static class DicKey {
-		String charsFile;
+		
+		/*String charsFile;*/
 		String wordsFile;
-		public DicKey(String charsFile, String wordsFile) {
-			this.charsFile = charsFile;
+		
+		public DicKey(/*String charsFile,*/ String wordsFile) {
+			/*this.charsFile = charsFile;*/
 			this.wordsFile = wordsFile;
 		}
 		@Override
@@ -237,18 +312,20 @@ public class Dictionary {
 			}
 			if(obj instanceof DicKey) {
 				DicKey other = (DicKey) obj;
-				return charsFile.equals(other.charsFile) && wordsFile.equals(other.wordsFile);
+				return /*charsFile.equals(other.charsFile) &&*/ wordsFile.equals(other.wordsFile);
 			}
 			return false;
 		}
 		@Override
 		public int hashCode() {
-			return 31*charsFile.hashCode() + 37*wordsFile.hashCode();
+			return /*31*charsFile.hashCode() +*/ 37*wordsFile.hashCode();
 		}
 		@Override
 		public String toString() {
-			return "[chars.dir="+charsFile+", words.dic="+wordsFile+"]";
+			//return "[chars.dic="+charsFile+", words.dic="+wordsFile+"]";
+			return "[words.dic="+wordsFile+"]";
 		}
 		
 	}
+
 }

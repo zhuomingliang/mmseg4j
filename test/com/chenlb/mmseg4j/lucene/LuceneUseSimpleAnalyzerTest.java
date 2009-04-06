@@ -19,6 +19,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 import com.chenlb.mmseg4j.analysis.ComplexAnalyzer;
+import com.chenlb.mmseg4j.analysis.MaxWordAnalyzer;
 import com.chenlb.mmseg4j.analysis.SimpleAnalyzer;
 
 public class LuceneUseSimpleAnalyzerTest extends TestCase {
@@ -31,6 +32,7 @@ public class LuceneUseSimpleAnalyzerTest extends TestCase {
 		String txt = "京华时报1月23日报道 昨天，受一股来自中西伯利亚的强冷空气影响，本市出现大风降温天气，白天最高气温只有零下7摄氏度，同时伴有6到7级的偏北风。";
 		analyzer = new SimpleAnalyzer();
 		analyzer = new ComplexAnalyzer();
+		analyzer = new MaxWordAnalyzer();
 		dir = new RAMDirectory();
 		IndexWriter iw = new IndexWriter(dir, analyzer);
 		Document doc = new Document();
@@ -45,7 +47,7 @@ public class LuceneUseSimpleAnalyzerTest extends TestCase {
 		try {
 			IndexSearcher searcher = new IndexSearcher(dir);
 			QueryParser qp = new QueryParser("txt", analyzer);
-			Query q = qp.parse("中西伯利亚");
+			Query q = qp.parse("西伯利亚");
 			System.out.println(q);
 			TopDocs tds = searcher.search(q, 10);
 			System.out.println("======size:"+tds.totalHits+"========");

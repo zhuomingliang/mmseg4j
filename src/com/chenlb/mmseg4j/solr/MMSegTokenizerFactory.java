@@ -14,6 +14,7 @@ import org.apache.solr.util.plugin.ResourceLoaderAware;
 
 import com.chenlb.mmseg4j.ComplexSeg;
 import com.chenlb.mmseg4j.Dictionary;
+import com.chenlb.mmseg4j.MaxWordSeg;
 import com.chenlb.mmseg4j.Seg;
 import com.chenlb.mmseg4j.SimpleSeg;
 import com.chenlb.mmseg4j.analysis.MMSegTokenizer;
@@ -28,14 +29,17 @@ public class MMSegTokenizerFactory extends BaseTokenizerFactory implements Resou
 	private Seg newSeg(Map<String, String> args) {
 		Seg seg = null;
 		log.info("create new Seg ...");
-		//default complex
+		//default max-word
 		String mode = args.get("mode");
 		if("simple".equals(mode)) {
 			log.info("use simple mode");
 			seg = new SimpleSeg(dic);
-		} else {
+		} else if("complex".equals(mode)) {
 			log.info("use complex mode");
 			seg = new ComplexSeg(dic);
+		} else {
+			log.info("use max-word mode");
+			seg = new MaxWordSeg(dic);
 		}
 		return seg;
 	}

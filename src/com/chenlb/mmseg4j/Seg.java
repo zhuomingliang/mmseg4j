@@ -26,6 +26,13 @@ public abstract class Seg {
 	}
 	
 	/**
+	 * @see Dictionary#isUnit(Character)
+	 */
+	protected boolean isUnit(int codePoint) {
+		return dic.isUnit((char) codePoint);
+	}
+	
+	/**
 	 * 查找chs[offset]后面的 len个char是否为词.
 	 * @return 返回chs[offset]字符结点下的词尾索引号,没找到返回 -1.
 	 * @deprecated 使用 {@link #search(CharNode, char[], int, int)}
@@ -44,6 +51,13 @@ public abstract class Seg {
 		return search(cn, chs, offset, len, new char[1][], 0);
 	}
 	
+	protected int search(char[] chs, int offset, int tailLen, char[][] cks, int ckIdx) {
+		if(tailLen == 0) {
+			return -1;
+		}
+		CharNode cn = dic.head(chs[offset]);
+		return search(cn, chs, offset, tailLen, cks, ckIdx);
+	}
 	/**
 	 * 从 cn 结果下找chs[offset]后面tailLenlen个字符.
 	 * @param cks 复制到 cks[ckIdx] 中, 它可能是一个词, 生成 Chunk 时就不用在 System.arraycopy 了

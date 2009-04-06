@@ -6,10 +6,15 @@ import java.io.Reader;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 
-import com.chenlb.mmseg4j.ComplexSeg;
 import com.chenlb.mmseg4j.Dictionary;
+import com.chenlb.mmseg4j.MaxWordSeg;
 import com.chenlb.mmseg4j.Seg;
 
+/**
+ * 默认使用 max-word
+ * 
+ * @author chenlb
+ */
 public class MMSegAnalyzer extends Analyzer {
 
 	protected Dictionary dic;
@@ -25,8 +30,13 @@ public class MMSegAnalyzer extends Analyzer {
 		dic = new Dictionary(path);
 	}
 	
+	public MMSegAnalyzer(Dictionary dic) {
+		super();
+		this.dic = dic;
+	}
+
 	protected Seg newSeg() {
-		return new ComplexSeg(dic);
+		return new MaxWordSeg(dic);
 	}
 	
 	@Override

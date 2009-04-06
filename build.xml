@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="mmseg4j" default="init">
+<project name="mmseg4j" default="build">
 
 	<property file="build.properties" />
 	<property name="project.name" value="${ant.project.name}" />
@@ -56,8 +56,8 @@
 				<exclude name="**/*.java" />
 			</fileset>
 		</copy>
-		<copy file="data/chars.dic" todir="${build.java.dir}/data" preservelastmodified="true">
-		</copy>
+		<copy file="data/chars.dic" todir="${build.java.dir}/data" preservelastmodified="true" />
+		<copy file="data/units.dic" todir="${build.java.dir}/data" preservelastmodified="true" />
 	</target>
 
 	<target name="build" depends="build.java,jar" />

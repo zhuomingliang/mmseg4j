@@ -3,6 +3,7 @@ package com.chenlb.mmseg4j;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.chenlb.mmseg4j.Chunk.Word;
 import com.chenlb.mmseg4j.rule.LargestAvgLenRule;
 import com.chenlb.mmseg4j.rule.LargestSumDegreeFreedomRule;
 import com.chenlb.mmseg4j.rule.MaxMatchRule;
@@ -128,11 +129,11 @@ public class ComplexSeg extends Seg{
 			if(offsets[i] < chs.length) {
 				/*ck.words[i] = new char[tailLen[i]+1];
 				System.arraycopy(chs, offsets[i], ck.words[i], 0, tailLen[i]+1);*/
-				ck.words[i] = cks[i];
+				ck.words[i] = new Word(cks[i], sen.getStartOffset()+offsets[i]);
 				if(tailLen[i] == 0) {	//单字的要取得"字频计算出自由度"
 					CharNode cn = cns[i];	//dic.head(chs[offsets[i]]);
 					if(cn !=null) {
-						ck.degrees[i] = cn.getFreq();
+						ck.words[i].degree = cn.getFreq();
 					}
 				}
 			}
