@@ -33,12 +33,13 @@ public class AnalyzerTest extends TestCase {
 	}
 	
 	public void testComplex() {
-		Analyzer analyzer = new ComplexAnalyzer("./sogou");
+		Analyzer analyzer = new ComplexAnalyzer();
 		try {
 			//txt = "1884年,中法战争时被派福建会办海疆事务";
 			//txt = "1999年12345日报道了一条新闻,2000年中法国足球比赛";
 			txt = "第一卷 云天落日圆 第一节 偷欢不成倒大霉";
 			txt = "中国人民银行";
+			txt = "我们";
 			//ComplexSeg.setShowChunk(true);
 			printlnToken(txt, analyzer);
 			//txt = "核心提示：3月13日上午，近3000名全国人大代表按下表决器，高票批准了温家宝总理代表国务院所作的政府工作报告。这份工作报告起草历时3个月，由温家宝总理亲自主持。";
@@ -50,13 +51,14 @@ public class AnalyzerTest extends TestCase {
 	}
 	
 	public void testMaxWord() {
-		Analyzer analyzer = new MaxWordAnalyzer("./sogou");
+		Analyzer analyzer = new MaxWordAnalyzer();
 		try {
 			//txt = "1884年,中法战争时被派福建会办海疆事务";
 			txt = "1999年12345日报道了一条新闻,2000年中法国足球比赛";
 			//txt = "第一卷 云天落日圆 第一节 偷欢不成倒大霉";
 			//txt = "中国人民银行";
 			//txt = "下一个 为什么";
+			txt = "我们家门前的大水沟很难过";
 			//ComplexSeg.setShowChunk(true);
 			printlnToken(txt, analyzer);
 			//txt = "核心提示：3月13日上午，近3000名全国人大代表按下表决器，高票批准了温家宝总理代表国务院所作的政府工作报告。这份工作报告起草历时3个月，由温家宝总理亲自主持。";

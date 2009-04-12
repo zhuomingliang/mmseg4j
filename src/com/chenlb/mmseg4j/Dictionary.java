@@ -8,6 +8,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -188,7 +189,7 @@ public class Dictionary {
 	 * 加载词文件的模板
 	 * @return 文件总行数
 	 */
-	private static int load(InputStream fin, FileLoading loading) throws IOException {
+	public static int load(InputStream fin, FileLoading loading) throws IOException {
 		BufferedReader br = new BufferedReader(
 				new InputStreamReader(new BufferedInputStream(fin), "UTF-8"));
 		String line = null;
@@ -213,7 +214,7 @@ public class Dictionary {
 		return cs;
 	}
 	
-	private static interface FileLoading {
+	public static interface FileLoading {
 		/**
 		 * @param line 读出的一行
 		 * @param n 当前第几行
@@ -241,12 +242,46 @@ public class Dictionary {
 	/**
 	 * word 能否在词库里找到
 	 * @return 没找到返回-1, node 为 null 返回-1.
+	 * @deprecated 用 {@link #search(CharNode, char[], int, int)}
 	 */
 	public int search(CharNode node, char[] word) {
 		if(node != null) {
 			return node.indexOf(word);
 		}
 		return -1;
+	}
+	
+	/**
+	 * sen[offset] 后 tailLen 长的词是否存在.
+	 * @see CharNode#indexOf(char[], int, int)
+	 * @author chenlb 2009-4-8 下午11:13:49
+	 */
+	public int search(CharNode node, char[] sen, int offset, int tailLen) {
+		if(node != null) {
+			return node.indexOf(sen, offset, tailLen);
+		}
+		return -1;
+	}
+	
+	public int maxMatch(char[] sen, int offset) {
+		CharNode node = dict.get(sen[offset]);
+		return maxMatch(node, sen, offset);
+	}
+	
+	public int maxMatch(CharNode node, char[] sen, int offset) {
+		if(node != null) {
+			return node.maxMatch(sen, offset+1);
+		}
+		return 0;
+	}
+	
+	public ArrayList<Integer> maxMatch(CharNode node, ArrayList<Integer> tailLens, char[] sen, int offset) {
+		tailLens.clear();
+		tailLens.add(0);
+		if(node != null) {
+			return node.maxMatch(tailLens, sen, offset+1);
+		}
+		return tailLens;
 	}
 	
 	public boolean isUnit(Character ch) {

@@ -11,6 +11,7 @@ public class ComplexSegTest extends TestCase {
 	Complex segW;
 	protected void setUp() throws Exception {
 		segW = new Complex();
+		//ComplexSeg.setShowChunk(true);
 	}
 
 	/*public void testSeg() {
@@ -84,8 +85,8 @@ public class ComplexSegTest extends TestCase {
 		assertEquals("广东工业大学", words);
 	}
 	public void testUnitEffect() throws IOException {
-		String words = segW.segWords("2008年中有很多事情", "|");
-		assertEquals("2008|年|中有|很多|事情", words);
+		String words = segW.segWords("2008年底发了资金吗", "|");
+		assertEquals("2008|年|底|发了|资金|吗", words);
 	}
 	
 	public void testUnitEffect1() throws IOException {

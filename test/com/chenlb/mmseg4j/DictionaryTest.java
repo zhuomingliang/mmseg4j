@@ -12,6 +12,20 @@ public class DictionaryTest extends TestCase {
 		super.setUp();
 	}
 
+	private void printMemory() {
+		Runtime rt = Runtime.getRuntime();
+		long total = rt.totalMemory();
+		long free = rt.freeMemory();
+		long max = rt.maxMemory();
+		System.out.println(String.format("total=%d, free=%d, max=%d, use=%d", total/1024, free/1024, max/1024, (total-free)/1024));
+	}
+	
+	public void loadDicMemoryUse() {
+		printMemory();
+		Dictionary dic = new Dictionary();
+		printMemory();
+	}
+	
 	public void loadDic() {
 		Dictionary dic = new Dictionary();
 		System.out.println("load match");

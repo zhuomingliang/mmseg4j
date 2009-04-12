@@ -1,5 +1,6 @@
 package com.chenlb.mmseg4j;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,24 +34,22 @@ public abstract class Seg {
 	}
 	
 	/**
-	 * 查找chs[offset]后面的 len个char是否为词.
+	 * 查找chs[offset]后面的 tailLen个char是否为词.
 	 * @return 返回chs[offset]字符结点下的词尾索引号,没找到返回 -1.
-	 * @deprecated 使用 {@link #search(CharNode, char[], int, int)}
 	 */
-	protected int search(char[] chs, int offset, int len) {
-		if(len == 0) {
+	protected int search(char[] chs, int offset, int tailLen) {
+		if(tailLen == 0) {
 			return -1;
 		}
 		CharNode cn = dic.head(chs[offset]);
-		/*if(cn == null) {
-			return -1;
-		}
-		char[] subChs = new char[len];
-		System.arraycopy(chs, offset+1, subChs, 0, len);
-		return dic.search(cn, subChs);*/
-		return search(cn, chs, offset, len, new char[1][], 0);
+		
+		return search(cn, chs, offset, tailLen);
 	}
 	
+	/**
+	 * 
+	 * @deprecated
+	 */
 	protected int search(char[] chs, int offset, int tailLen, char[][] cks, int ckIdx) {
 		if(tailLen == 0) {
 			return -1;
@@ -62,6 +61,7 @@ public abstract class Seg {
 	 * 从 cn 结果下找chs[offset]后面tailLenlen个字符.
 	 * @param cks 复制到 cks[ckIdx] 中, 它可能是一个词, 生成 Chunk 时就不用在 System.arraycopy 了
 	 * @return 返回chs[offset]字符结点下的词尾索引号,没找到返回 -1.
+	 * @deprecated 用 {@link #search(CharNode, char[], int, int)} 可以减少数组复制.
 	 * @author chenlb 2009-3-29 下午01:31:16
 	 */
 	protected int search(CharNode cn, char[] chs, int offset, int tailLen, char[][] cks, int ckIdx) {
@@ -88,6 +88,17 @@ public abstract class Seg {
 		System.arraycopy(chs, offset, subChs, 0, tailLen+1);
 		cks[ckIdx] = subChs;
 		return dic.search(cn, subChs);
+	}
+	
+	/**
+	 * 没有数组的复制.
+	 * @author chenlb 2009-4-8 下午11:39:15
+	 */
+	protected int search(CharNode cn, char[] chs, int offset, int tailLen) {
+		if(tailLen == 0 || cn == null) {
+			return -1;
+		}
+		return dic.search(cn, chs, offset, tailLen);
 	}
 	/**
 	 * 结合与词库长度给出可用的词的最大长度
@@ -138,6 +149,7 @@ public abstract class Seg {
 	 * @param maxAvailableLen 结合与词库长度给出可用的词的最大长度的保存空间
 	 * @param maxLenIdx maxAvailableLen 的索引号
 	 * @return 至少一个 {0}
+	 * @deprecated 用 {@link CharNode#maxMatch(java.util.ArrayList, char[], int)}
 	 * @author chenlb 2009-3-29 下午01:33:01
 	 */
 	protected int[] getLens(CharNode[] cns, int cnIdx, char[] chs, int offset, int[] maxAvailableLen, int maxLenIdx) {
@@ -155,6 +167,34 @@ public abstract class Seg {
 		maxAvailableLen[maxLenIdx] = Math.min(cn.getMaxLen(), chs.length-offset-1);
 		cns[cnIdx] = cn;
 		return cn.getLens();
+	}
+	
+	protected int maxMatch(CharNode[] cns, int cnIdx, char[] chs, int offset) {
+		CharNode cn = null;
+		if(offset < chs.length) {
+			cn = dic.head(chs[offset]);
+		}
+		cns[cnIdx] = cn;
+		return dic.maxMatch(cn, chs, offset);
+	}
+	
+	/**
+	 * 匹配,同时找出长度
+	 * @param cns
+	 * @param cnIdx
+	 * @param chs
+	 * @param offset
+	 * @param tailLens
+	 * @param tailLensIdx
+	 * @author chenlb 2009-4-12 上午10:37:58
+	 */
+	protected void maxMatch(CharNode[] cns, int cnIdx, char[] chs, int offset, ArrayList<Integer>[] tailLens, int tailLensIdx) {
+		CharNode cn = null;
+		if(offset < chs.length) {
+			cn = dic.head(chs[offset]);
+		}
+		cns[cnIdx] = cn;
+		dic.maxMatch(cn, tailLens[tailLensIdx], chs, offset);
 	}
 	
 	public abstract Chunk seg(Sentence sen);

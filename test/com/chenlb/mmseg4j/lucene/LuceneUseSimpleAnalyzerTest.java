@@ -30,6 +30,7 @@ public class LuceneUseSimpleAnalyzerTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		String txt = "京华时报1月23日报道 昨天，受一股来自中西伯利亚的强冷空气影响，本市出现大风降温天气，白天最高气温只有零下7摄氏度，同时伴有6到7级的偏北风。";
+		txt = "2008年底发了资金吗";
 		analyzer = new SimpleAnalyzer();
 		analyzer = new ComplexAnalyzer();
 		analyzer = new MaxWordAnalyzer();
@@ -47,7 +48,7 @@ public class LuceneUseSimpleAnalyzerTest extends TestCase {
 		try {
 			IndexSearcher searcher = new IndexSearcher(dir);
 			QueryParser qp = new QueryParser("txt", analyzer);
-			Query q = qp.parse("西伯利亚");
+			Query q = qp.parse("2008年底");	//西伯利亚
 			System.out.println(q);
 			TopDocs tds = searcher.search(q, 10);
 			System.out.println("======size:"+tds.totalHits+"========");

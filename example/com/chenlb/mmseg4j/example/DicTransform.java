@@ -11,8 +11,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import javax.xml.crypto.dsig.Transform;
-
 public class DicTransform {
 
 	public static interface Transform {
@@ -32,7 +30,7 @@ public class DicTransform {
 		
 	}
 	
-	public static class TwoChar extends DeFreq {
+	public static class TwoOrThreeChar extends DeFreq {
 
 		public String transform(String line) {
 			String word = super.transform(line);
@@ -46,8 +44,7 @@ public class DicTransform {
 	}
 	
 	public int transform(File src, String srcCharset, File dist, Transform tf) throws IOException {
-		Writer writer = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(dist), "UTF-8"));
+		WriterRow wr = new WriterRow(dist);
 		BufferedReader br = new BufferedReader(
 				new InputStreamReader(new BufferedInputStream(new FileInputStream(src)), srcCharset));
 		String line = null;
@@ -61,12 +58,53 @@ public class DicTransform {
 			String li = tf.transform(line);
 			if(li != null) {
 				ava++;
-				writer.append(li).append("\r\n");
+				wr.writerRow(li);
 			}
 		}
-		writer.close();
+		wr.close();
 		System.out.println("----line="+n+", available="+ava+", time="+(System.currentTimeMillis()-start)+"ms");
 		return ava;
+	}
+	
+	public static class WriterRow {
+		Writer writer;
+
+		public WriterRow(File dist) {
+			try {
+				writer = new BufferedWriter(
+						new OutputStreamWriter(new FileOutputStream(dist), "UTF-8"));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		public void writerRow(String line) {
+			try {
+				writer.append(line).append("\r\n");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		public void writerRow(char[] chs) {
+			try {
+				for(char ch : chs) {
+					writer.append(ch);
+				}
+				if(chs.length > 0) {
+					writer.append("\r\n");
+				}
+			} catch (IOException e) {
+
+				e.printStackTrace();
+			}
+		}
+		public void close() {
+			try {
+				writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/**
@@ -81,13 +119,13 @@ public class DicTransform {
 		}
 		File file = new File(words);
 		//File path = file.getParentFile();
-		File dist = new File("dic/words.dic");
-		
+		//File dist = new File("dic/words.dic");
+		File dist = new File("dic/two-three-words.dic");
 		DicTransform dt = new DicTransform();
 		//只要词,不频率
-		dt.transform(file, charset, dist, new TwoChar());
-		//只要两个词的.
-		//dt.transform(file, charset, dist, new TwoChar());
+		//dt.transform(file, charset, dist, new DeFreq());
+		//只要两或三个字的词.
+		dt.transform(file, charset, dist, new TwoOrThreeChar());
 		
 	}
 

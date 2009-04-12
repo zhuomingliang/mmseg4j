@@ -1,8 +1,9 @@
 package com.chenlb.mmseg4j;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -16,7 +17,9 @@ public class CharNode {
 	private ArrayList<char[]> wordTails = new ArrayList<char[]>();	//word除去一个字的部分
 	private int freq = -1;	//Degree of Morphemic Freedom of One-Character, 单字才需要
 	private int maxLen = 0;	//wordTail的最长
+	@Deprecated
 	private int[] lens;
+	@Deprecated
 	private SortedSet<Integer> setLens = new TreeSet<Integer>(new Comparator<Integer>() {
 
 		public int compare(Integer a, Integer b) {
@@ -26,19 +29,24 @@ public class CharNode {
 		
 	});	//所有不同的wordTail长度
 	
-	private CharArrayComparator cac = new CharArrayComparator();
+	//private CharArrayComparator cac = new CharArrayComparator();
 	private CharArraySearhComparator casc = new CharArraySearhComparator();
 
+	private KeyTree ktWordTails = new KeyTree();
+	private int wordNum = 0;
+	
 	public CharNode() {
 		setLens.add(0);	//没有尾部的结果, 方便生成 chunk
 	}
 	
 	public void addWordTail(char[] wordTail) {
-		wordTails.add(wordTail);
+
+		ktWordTails.add(wordTail);
+		wordNum++;
 		if(wordTail.length > maxLen) {
 			maxLen = wordTail.length;
 		}
-		setLens.add(wordTail.length);
+		//setLens.add(wordTail.length);
 	}
 	public int getFreq() {
 		return freq;
@@ -49,39 +57,64 @@ public class CharNode {
 	}
 	
 	public void sort() {
-		lens = new int[setLens.size()];
-		int i = 0;
-		for(Integer len : setLens) {
-			lens[i++] = len;
-		}
-		setLens = null;
-		Collections.sort(wordTails, cac);
+		
 	}
 	
 	public int wordNum() {
-		return wordTails.size();
+		return wordNum;
 	}
 	
 	/**
 	 * @param word 是整个词, 内部会除去第一个再比较.
 	 * @return 能找到 >=0, 否则返回负数
+	 * @deprecated 用 {@link #indexOf(char[], int, int)}
 	 * @author chenlb 2009-3-3 下午11:09:07
 	 */
 	public int indexOf(char[] word) {
-		return binarySearch(wordTails, word, casc);
+		return binarySearch(wordTails, word, 1, word.length-1, casc);
+	}
+	
+	/**
+	 * @param sen 句子, 一串文本.
+	 * @param offset 词在句子中的位置
+	 * @param tailLen 词尾的长度, 实际是去掉词的长度.
+	 * @author chenlb 2009-4-8 下午11:10:30
+	 */
+	public int indexOf(char[] sen, int offset, int tailLen) {
+		//return binarySearch(wordTails, sen, offset+1, tailLen, casc);
+		return ktWordTails.match(sen, offset+1, tailLen) ? 1 : -1;
+	}
+	
+	/**
+	 * @param sen 句子, 一串文本.
+	 * @param wordTailOffset 词在句子中的位置, 实际是 offset 后面的开始找.
+	 * @return 返回词尾长, 没有就是 0
+	 * @author chenlb 2009-4-10 下午10:45:51
+	 */
+	public int maxMatch(char[] sen, int wordTailOffset) {
+		return ktWordTails.maxMatch(sen, wordTailOffset);
+	}
+	
+	/**
+	 * 
+	 * @return 至少返回一个包括 0的int
+	 * @author chenlb 2009-4-12 上午10:01:35
+	 */
+	public ArrayList<Integer> maxMatch(ArrayList<Integer> tailLens, char[] sen, int wordTailOffset) {
+		return ktWordTails.maxMatch(tailLens, sen, wordTailOffset);
 	}
 	
 	/**
 	 * copy Collections.indexedBinarySearch
 	 */
-	private static int binarySearch(ArrayList<char[]> l, char[] key, CharArraySearhComparator c) {
+	private static int binarySearch(ArrayList<char[]> l, char[] key, int offset, int len, CharArraySearhComparator c) {
 		int low = 0;
 		int high = l.size()-1;
 
 		while (low <= high) {
 		    int mid = (low + high) >> 1;
 		    char[] midVal = l.get(mid);
-		    int cmp = c.compare(midVal, key, 1, key.length);	//key第一个不算
+		    int cmp = c.compare(midVal, key, offset, len);	//key第一个不算
 
 		    if (cmp < 0)
 			low = mid + 1;
@@ -101,6 +134,7 @@ public class CharNode {
 	}
 	/**
 	 * @return 所有不同词长的集,大到小顺序.
+	 * @deprecated
 	 * @author chenlb 2009-3-29 上午01:17:22
 	 */
 	public int[] getLens() {
@@ -131,8 +165,8 @@ public class CharNode {
 	
 	public static class CharArraySearhComparator extends CharArrayComparator {
 
-		public int compare(char[] a, char[] b, int bOffest, int bEnd) {
-			int aLen = a.length, bLen = bEnd-bOffest;
+		public int compare(char[] a, char[] b, int bOffest, int bLen) {
+			int aLen = a.length;//, bLen = bEnd-bOffest;
 			int len = Math.min(aLen, bLen);
 			int iA = 0, iB = bOffest;
 			while(iA<len) {
@@ -150,6 +184,92 @@ public class CharNode {
 				return -1;
 			}
 			return 0;
+		}
+	}
+	
+	public static class KeyTree {
+		TreeNode head = new TreeNode(' ');
+		
+		public void add(char[] w) {
+			if(w.length < 1) {
+				return;
+			}
+			TreeNode p = head;
+			for(int i=0; i<w.length; i++) {
+				TreeNode n = p.subNode(w[i]);
+				if(n == null) {
+					n = new TreeNode(w[i]);
+					p.born(w[i], n);
+				}
+				p = n;
+			}
+			p.alsoLeaf = true;
+		}
+		
+		/**
+		 * @return 返回匹配最长词的长度, 没有找到返回 0.
+		 */
+		public int maxMatch(char[] sen, int offset) {
+			int idx = offset - 1;
+			TreeNode node = head;
+			for(int i=offset; i<sen.length; i++) {
+				node = node.subNode(sen[i]);
+				if(node != null) {
+					if(node.isAlsoLeaf()) {
+						idx = i; 
+					}
+				} else {
+					break;
+				}
+			}
+			return idx - offset + 1;
+		}
+		
+		public ArrayList<Integer> maxMatch(ArrayList<Integer> tailLens, char[] sen, int offset) {
+			TreeNode node = head;
+			for(int i=offset; i<sen.length; i++) {
+				node = node.subNode(sen[i]);
+				if(node != null) {
+					if(node.isAlsoLeaf()) {
+						tailLens.add(i-offset+1); 
+					}
+				} else {
+					break;
+				}
+			}
+			return tailLens;
+		}
+		
+		public boolean match(char[] sen, int offset, int len) {
+			TreeNode node = head;
+			for(int i=0; i<len; i++) {
+				node = node.subNode(sen[offset+i]);
+				if(node == null) {
+					return false;
+				}
+			}
+			return node.isAlsoLeaf();
+		}
+	}
+	
+	private static class TreeNode {
+		char key;
+		Map<Character, TreeNode> subNodes;
+		boolean alsoLeaf;
+		public TreeNode(char key) {
+			this.key = key;
+			subNodes = new HashMap<Character, TreeNode>();
+		}
+		
+		public void born(char k, TreeNode sub) {
+			subNodes.put(k, sub);
+		}
+		
+		public TreeNode subNode(char k) {
+			return subNodes.get(k);
+		}
+		public boolean isAlsoLeaf() {
+			return alsoLeaf;
 		}
 	}
 }

@@ -60,7 +60,7 @@ public class Performance {
 				//int offset = chunk.getStartOffset();
 				for(Word word : chunk.getWords()) {
 					if(word != null) {
-						bw.append(new String(word.getWord())).append("\r\n");
+						bw.append(new String(word.getString())).append("\r\n");
 						//offset += word.length;
 						
 					}

@@ -64,7 +64,7 @@ public class MMSegTokenizer extends Tokenizer {
 		if(wordIdx < chunk.getCount()) {
 			Word word = chunk.getWords()[wordIdx++];
 			//if(word != null) {
-				token = reusableToken.reinit(word.getWord(), 0, word.getLength(), word.getStartOffset(), word.getEndOffset());
+				token = reusableToken.reinit(word.getSen(), word.getWordOffset(), word.getLength(), word.getStartOffset(), word.getEndOffset());
 				//chunk = null;
 				//break;
 			//}

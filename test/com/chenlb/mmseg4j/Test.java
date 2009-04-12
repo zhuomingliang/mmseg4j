@@ -2,6 +2,7 @@ package com.chenlb.mmseg4j;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,6 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+
+import com.chenlb.mmseg4j.example.DicTransform;
+import com.chenlb.mmseg4j.example.DicTransform.WriterRow;
 
 import junit.framework.TestCase;
 
@@ -163,5 +167,23 @@ public class Test extends TestCase {
 		}
 		writer.close();
 		System.out.println("writer use "+(now()-start)+"ms");
+	}
+	
+	public void testTwoThreeWordSort() throws IOException {
+		final ArrayList<char[]> words = new ArrayList<char[]>(110000);
+		Dictionary.load(new FileInputStream(new File("dic/two-three-words.dic")), new Dictionary.FileLoading() {
+
+			public void row(String line, int n) {
+				if(line != null && !"#".startsWith(line) && line.length() > 1) {
+					words.add(line.toCharArray());
+				}
+			}
+		});
+		Collections.sort(words, new CharNode.CharArrayComparator());
+		WriterRow wr = new WriterRow(new File("dic/twree-sort-words.dic"));
+		for(char[] line : words) {
+			wr.writerRow(line);
+		}
+		wr.close();
 	}
 }
