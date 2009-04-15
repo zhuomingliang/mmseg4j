@@ -39,7 +39,7 @@ public class Complex {
 				if(!first) {
 					sb.append(wordSpilt);
 				}
-				String w = new String(word.getWord());
+				String w = word.getString();
 				sb.append(w);
 				first = false;
 			}

@@ -34,7 +34,7 @@ public class DictionaryTest extends TestCase {
 		assertTrue(dic.match("词典"));
 		
 		assertFalse(dic.match("人个"));
-		assertFalse(dic.match("三个人"));
+		assertFalse(dic.match("三十个人"));
 		
 		assertFalse(dic.match(""));
 		assertFalse(dic.match("人"));

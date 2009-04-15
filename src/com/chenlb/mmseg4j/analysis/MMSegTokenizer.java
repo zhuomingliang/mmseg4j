@@ -7,8 +7,6 @@ import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.Tokenizer;
 
 import com.chenlb.mmseg4j.Chunk;
-import com.chenlb.mmseg4j.ComplexSeg;
-import com.chenlb.mmseg4j.Dictionary;
 import com.chenlb.mmseg4j.MMSeg;
 import com.chenlb.mmseg4j.Seg;
 import com.chenlb.mmseg4j.Chunk.Word;
@@ -17,7 +15,7 @@ public class MMSegTokenizer extends Tokenizer {
 
 	private MMSeg mmSeg;
 	
-	public MMSegTokenizer(Reader input) {
+/*	public MMSegTokenizer(Reader input) {
 		super(input);
 		init(new ComplexSeg(new Dictionary()));
 	}
@@ -25,7 +23,7 @@ public class MMSegTokenizer extends Tokenizer {
 	public MMSegTokenizer(Reader input, Dictionary dic) {
 		super(input);
 		init(new ComplexSeg(dic));
-	}
+	}*/
 	
 	public MMSegTokenizer(Seg seg, Reader input) {
 		super(input);
@@ -64,7 +62,7 @@ public class MMSegTokenizer extends Tokenizer {
 		if(wordIdx < chunk.getCount()) {
 			Word word = chunk.getWords()[wordIdx++];
 			//if(word != null) {
-				token = reusableToken.reinit(word.getWord(), 0, word.getLength(), word.getStartOffset(), word.getEndOffset());
+				token = reusableToken.reinit(word.getSen(), 0, word.getLength(), word.getStartOffset(), word.getEndOffset());
 				//chunk = null;
 				//break;
 			//}

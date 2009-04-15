@@ -11,8 +11,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import javax.xml.crypto.dsig.Transform;
-
 public class DicTransform {
 
 	public static interface Transform {

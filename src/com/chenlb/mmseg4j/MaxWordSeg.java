@@ -27,42 +27,25 @@ public class MaxWordSeg extends ComplexSeg {
 
 				if(word.getLength() < 3) {
 					cks.add(word);
-				}/* else if(word.getLength() == 3) {
-					char[] chs = word.word;
-					char[][] subW = new char[2][];
-					int idx = search(chs, 0, 1, subW, 0);
-					if(idx > -1) {
-						cks.add(new Word(subW[0], word.startOffset));
-						idx = search(chs, 1, 1, subW, 1);
-						if(idx > -1) {
-							cks.add(new Word(subW[1], word.startOffset+1));
-						} else {	//后面的不是词, 把本身也加入.
-							cks.add(word);
-						}
-					} else {
-						cks.add(word);
-					}
-				}*/ else {
-					char[] chs = word.word;
-					char[][] subW = new char[chs.length][];
-					int offset = 0, n = 0;
+				} else {
+					char[] chs = word.sen;
+					int offset = word.getWordOffset(), n = 0, wordEnd = word.getWordOffset()+word.getLength();
 					int end = -1;	//上一次找到的位置
-					for(; offset<chs.length-1; offset++) {
-						int idx = search(chs, offset, 1, subW, n);
+					for(; offset<wordEnd-1; offset++) {
+						int idx = search(chs, offset, 1);
 						if(idx > -1) {
-							cks.add(new Word(subW[n], word.startOffset+offset));
+							cks.add(new Word(chs, word.startOffset, offset, 2));
 							end = offset+2;
 							n++;
 						} else if(offset >= end) {	//有单字
-							cks.add(new Word(new char[] {chs[offset]}, word.startOffset+offset));
+							cks.add(new Word(chs, word.startOffset, offset, 1));
 							end = offset+1;
 							
 						}
 					}
-					if(end > -1 && end < chs.length) {
-						cks.add(new Word(new char[] {chs[offset]}, word.startOffset+offset));
+					if(end > -1 && end < wordEnd) {
+						cks.add(new Word(chs, word.startOffset, offset, 1));
 					}
-					//cks.add(word);
 				}
 
 			}

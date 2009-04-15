@@ -9,8 +9,6 @@ public class Chunk {
 
 	Word[] words = new Word[3];
 	
-	private int startOffset;
-	
 	int count = -1;
 	
 	/** Word Length */
@@ -91,7 +89,7 @@ public class Chunk {
 		StringBuilder sb = new StringBuilder();
 		for(Word word : words) {
 			if(word != null) {
-				sb.append(word.word).append('_');
+				sb.append(word.getString()).append('_');
 			}
 		}
 		return sb.toString();
@@ -108,32 +106,62 @@ public class Chunk {
 	}
 
 	public static class Word {
-		char[] word;
 		int degree = -1;
 		int startOffset;
 		
+		char[] sen;
+		int offset;
+		int len;
+		
 		/**
-		 * @param startOffset word 在文本中的偏移位置
+		 * @param startOffset word 在整个文本中的偏移位置
 		 */
 		public Word(char[] word, int startOffset) {
 			super();
-			this.word = word;
+			this.sen = word;
 			this.startOffset = startOffset;
+			offset = 0;
+			len = word.length;
+		}
+		
+		/**
+		 * @param startOffset sen 在整个文本中的偏移位置
+		 * @param offset 词在 sen 的偏移位置
+		 * @param len 词长
+		 */
+		public Word(char[] sen, int startOffset, int offset, int len) {
+			super();
+			this.sen = sen;
+			this.startOffset = startOffset;
+			this.offset = offset;
+			this.len = len;
+		}
+
+		public String getString() {
+			return new String(getSen(), getWordOffset(), getLength());
+		}
+		
+		public String toString() {
+			return getString();
+		}
+		
+		public int getWordOffset() {
+			return offset;
 		}
 		
 		public int getLength() {
-			return word.length;
-		}
-		
-		public char[] getWord() {
-			return word;
+			return len;
 		}
 
+		public char[] getSen() {
+			return sen;
+		}
+		
 		public int getStartOffset() {
-			return startOffset;
+			return startOffset+offset;
 		}
 		public int getEndOffset() {
-			return startOffset + word.length;
+			return getStartOffset() + getLength();
 		}
 		public int getDegree() {
 			return degree;
@@ -141,16 +169,6 @@ public class Chunk {
 		public void setDegree(int degree) {
 			this.degree = degree;
 		}
-	}
-	
-	/** chunk 中第一个词在文本中的偏移位置 */
-	public int getStartOffset() {
-		return startOffset;
-	}
-
-	/** chunk 中第一个词在文本中的偏移位置 */
-	public void setStartOffset(int startOffset) {
-		this.startOffset = startOffset;
 	}
 
 	public Word[] getWords() {

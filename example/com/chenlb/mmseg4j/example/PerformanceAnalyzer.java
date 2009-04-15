@@ -45,7 +45,7 @@ public class PerformanceAnalyzer {
 				FileInputStream ftxt = new FileInputStream(txt);
 				int s = ftxt.available();
 				size += s;
-				TokenStream ts = analyzer.tokenStream("text", new InputStreamReader(ftxt, "GBK"));
+				TokenStream ts = analyzer.tokenStream("text", new InputStreamReader(ftxt));
 				OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(new File(txt.getAbsoluteFile()+"."+outputChipName+".word")));
 				BufferedWriter bw = new BufferedWriter(osw);
 				long start = System.currentTimeMillis();
@@ -63,6 +63,7 @@ public class PerformanceAnalyzer {
 	
 	/**
 	 * -Dmode=simple, default is complex
+	 * -Dfile.encoding=UTF-8 or other
 	 * @param args args[0] txt path
 	 * @author chenlb 2009-3-28 下午02:19:52
 	 * @throws Exception 
@@ -103,6 +104,7 @@ public class PerformanceAnalyzer {
 		System.out.println("Usage:");
 		System.out.println("\t-Dmode=simple, defalut is complex");
 		System.out.println("\t-Danalyzer=paoding, defalut is mmseg4j");
+		System.out.println("\t-Dfile.encoding=UTF-8 or other, *.txt file encode");
 		System.out.println("\tPerformance <txt path> - is a directory that contain *.txt");
 	}
 	

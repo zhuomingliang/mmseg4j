@@ -231,7 +231,7 @@ public class Dictionary {
 			return false;
 		}
 		CharNode cn = dict.get(word.charAt(0));
-		return search(cn, word.toCharArray()) >= 0;
+		return search(cn, word.toCharArray(), 0, word.length()-1) >= 0;
 	}
 	
 	public CharNode head(char ch) {
@@ -239,12 +239,13 @@ public class Dictionary {
 	}
 	
 	/**
-	 * word 能否在词库里找到
-	 * @return 没找到返回-1, node 为 null 返回-1.
+	 * sen[offset] 后 tailLen 长的词是否存在.
+	 * @see CharNode#indexOf(char[], int, int)
+	 * @author chenlb 2009-4-8 下午11:13:49
 	 */
-	public int search(CharNode node, char[] word) {
+	public int search(CharNode node, char[] sen, int offset, int tailLen) {
 		if(node != null) {
-			return node.indexOf(word);
+			return node.indexOf(sen, offset, tailLen);
 		}
 		return -1;
 	}

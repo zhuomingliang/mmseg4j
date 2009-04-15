@@ -63,25 +63,26 @@ public class CharNode {
 	}
 	
 	/**
-	 * @param word 是整个词, 内部会除去第一个再比较.
-	 * @return 能找到 >=0, 否则返回负数
-	 * @author chenlb 2009-3-3 下午11:09:07
+	 * @param sen 句子, 一串文本.
+	 * @param offset 词在句子中的位置
+	 * @param tailLen 词尾的长度, 实际是去掉词的长度.
+	 * @author chenlb 2009-4-8 下午11:10:30
 	 */
-	public int indexOf(char[] word) {
-		return binarySearch(wordTails, word, casc);
+	public int indexOf(char[] sen, int offset, int tailLen) {
+		return binarySearch(wordTails, sen, offset+1, tailLen, casc);
 	}
 	
 	/**
 	 * copy Collections.indexedBinarySearch
 	 */
-	private static int binarySearch(ArrayList<char[]> l, char[] key, CharArraySearhComparator c) {
+	private static int binarySearch(ArrayList<char[]> l, char[] key, int offset, int len, CharArraySearhComparator c) {
 		int low = 0;
 		int high = l.size()-1;
 
 		while (low <= high) {
 		    int mid = (low + high) >> 1;
 		    char[] midVal = l.get(mid);
-		    int cmp = c.compare(midVal, key, 1, key.length);	//key第一个不算
+		    int cmp = c.compare(midVal, key, offset, len);	//key第一个不算
 
 		    if (cmp < 0)
 			low = mid + 1;
@@ -131,8 +132,8 @@ public class CharNode {
 	
 	public static class CharArraySearhComparator extends CharArrayComparator {
 
-		public int compare(char[] a, char[] b, int bOffest, int bEnd) {
-			int aLen = a.length, bLen = bEnd-bOffest;
+		public int compare(char[] a, char[] b, int bOffest, int bLen) {
+			int aLen = a.length;
 			int len = Math.min(aLen, bLen);
 			int iA = 0, iB = bOffest;
 			while(iA<len) {
