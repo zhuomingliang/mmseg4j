@@ -47,7 +47,7 @@ public class Effect {
 				FileInputStream ftxt = new FileInputStream(txt);
 				int s = ftxt.available();
 				size += s;
-				BufferedReader reader = new BufferedReader(new InputStreamReader(ftxt, "GBK"));
+				BufferedReader reader = new BufferedReader(new InputStreamReader(ftxt));
 				
 				OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(new File(txt.getAbsoluteFile()+"."+outputChipName+".word")));
 				BufferedWriter bw = new BufferedWriter(osw);

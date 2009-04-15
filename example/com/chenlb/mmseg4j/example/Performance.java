@@ -21,6 +21,7 @@ public class Performance {
 
 	/**
 	 * -Dmode=simple, default is complex
+	 * -Dfile.encode=utf-8 or other
 	 * @param args args[0] txt path
 	 * @author chenlb 2009-3-28 下午02:19:52
 	 * @throws IOException 
@@ -51,7 +52,7 @@ public class Performance {
 		});
 		long time = 0;
 		for(File txt : txts) {
-			MMSeg mmSeg = new MMSeg(new InputStreamReader(new FileInputStream(txt), "GBK"), seg);
+			MMSeg mmSeg = new MMSeg(new InputStreamReader(new FileInputStream(txt)), seg);
 			Chunk chunk = null;
 			OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(new File(txt.getAbsoluteFile()+"."+mode+".word")));
 			BufferedWriter bw = new BufferedWriter(osw);

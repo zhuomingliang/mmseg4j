@@ -152,13 +152,6 @@ public class Chunk {
 		public int getLength() {
 			return len;
 		}
-		
-		/**
-		 * @deprecated 用 getSen() 和 getStartOffset(),getEndOffset()
-		 */
-		public char[] getWord() {
-			return getSen();
-		}
 
 		public char[] getSen() {
 			return sen;

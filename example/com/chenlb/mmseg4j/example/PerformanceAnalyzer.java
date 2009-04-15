@@ -45,7 +45,7 @@ public class PerformanceAnalyzer {
 				FileInputStream ftxt = new FileInputStream(txt);
 				int s = ftxt.available();
 				size += s;
-				TokenStream ts = analyzer.tokenStream("text", new InputStreamReader(ftxt, "GBK"));
+				TokenStream ts = analyzer.tokenStream("text", new InputStreamReader(ftxt));
 				OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(new File(txt.getAbsoluteFile()+"."+outputChipName+".word")));
 				BufferedWriter bw = new BufferedWriter(osw);
 				long start = System.currentTimeMillis();

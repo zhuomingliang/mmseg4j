@@ -29,7 +29,7 @@ public class MMSegTest extends TestCase {
 			//int offset = chunk.getStartOffset();
 			for(Word word : chunk.words) {
 				if(word != null) {
-					System.out.print(new String(word.getWord())+" -> "+word.startOffset);
+					System.out.print(word.getString()+" -> "+word.startOffset);
 					//offset += word.length;
 					System.out.println(", "+word.getEndOffset());
 				}

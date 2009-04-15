@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * 所有词都记录在第一个字的结点下.
@@ -14,39 +12,26 @@ import java.util.TreeSet;
  */
 public class CharNode {
 
-	private ArrayList<char[]> wordTails = new ArrayList<char[]>();	//word除去一个字的部分
 	private int freq = -1;	//Degree of Morphemic Freedom of One-Character, 单字才需要
 	private int maxLen = 0;	//wordTail的最长
-	@Deprecated
-	private int[] lens;
-	@Deprecated
-	private SortedSet<Integer> setLens = new TreeSet<Integer>(new Comparator<Integer>() {
 
-		public int compare(Integer a, Integer b) {
-			
-			return - a.compareTo(b);	//大到小排序
-		}
-		
-	});	//所有不同的wordTail长度
 	
 	//private CharArrayComparator cac = new CharArrayComparator();
-	private CharArraySearhComparator casc = new CharArraySearhComparator();
+	//private CharArraySearhComparator casc = new CharArraySearhComparator();
 
 	private KeyTree ktWordTails = new KeyTree();
 	private int wordNum = 0;
 	
 	public CharNode() {
-		setLens.add(0);	//没有尾部的结果, 方便生成 chunk
+		
 	}
 	
 	public void addWordTail(char[] wordTail) {
-
 		ktWordTails.add(wordTail);
 		wordNum++;
 		if(wordTail.length > maxLen) {
 			maxLen = wordTail.length;
 		}
-		//setLens.add(wordTail.length);
 	}
 	public int getFreq() {
 		return freq;
@@ -62,16 +47,6 @@ public class CharNode {
 	
 	public int wordNum() {
 		return wordNum;
-	}
-	
-	/**
-	 * @param word 是整个词, 内部会除去第一个再比较.
-	 * @return 能找到 >=0, 否则返回负数
-	 * @deprecated 用 {@link #indexOf(char[], int, int)}
-	 * @author chenlb 2009-3-3 下午11:09:07
-	 */
-	public int indexOf(char[] word) {
-		return binarySearch(wordTails, word, 1, word.length-1, casc);
 	}
 	
 	/**
@@ -107,6 +82,7 @@ public class CharNode {
 	/**
 	 * copy Collections.indexedBinarySearch
 	 */
+	@SuppressWarnings("unused")
 	private static int binarySearch(ArrayList<char[]> l, char[] key, int offset, int len, CharArraySearhComparator c) {
 		int low = 0;
 		int high = l.size()-1;
@@ -132,14 +108,7 @@ public class CharNode {
 	public void setMaxLen(int maxLen) {
 		this.maxLen = maxLen;
 	}
-	/**
-	 * @return 所有不同词长的集,大到小顺序.
-	 * @deprecated
-	 * @author chenlb 2009-3-29 上午01:17:22
-	 */
-	public int[] getLens() {
-		return lens;
-	}
+
 	public static class CharArrayComparator implements Comparator<char[]> {
 
 		public int compare(char[] a, char[] b) {

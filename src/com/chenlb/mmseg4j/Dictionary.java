@@ -232,23 +232,11 @@ public class Dictionary {
 			return false;
 		}
 		CharNode cn = dict.get(word.charAt(0));
-		return search(cn, word.toCharArray()) >= 0;
+		return search(cn, word.toCharArray(), 0, word.length()-1) >= 0;
 	}
 	
 	public CharNode head(char ch) {
 		return dict.get(ch);
-	}
-	
-	/**
-	 * word 能否在词库里找到
-	 * @return 没找到返回-1, node 为 null 返回-1.
-	 * @deprecated 用 {@link #search(CharNode, char[], int, int)}
-	 */
-	public int search(CharNode node, char[] word) {
-		if(node != null) {
-			return node.indexOf(word);
-		}
-		return -1;
 	}
 	
 	/**

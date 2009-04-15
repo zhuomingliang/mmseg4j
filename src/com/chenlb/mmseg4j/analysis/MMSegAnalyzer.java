@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.LowerCaseFilter;
+import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 
 import com.chenlb.mmseg4j.Dictionary;
@@ -43,20 +45,26 @@ public class MMSegAnalyzer extends Analyzer {
 	public TokenStream reusableTokenStream(String fieldName, Reader reader)
 			throws IOException {
 		
-		MMSegTokenizer mmSegTokenizer = (MMSegTokenizer) getPreviousTokenStream();
-		if(mmSegTokenizer == null) {
-			mmSegTokenizer = new MMSegTokenizer(newSeg(), reader);
-			setPreviousTokenStream(mmSegTokenizer);
+		SavedStreams streams = (SavedStreams) getPreviousTokenStream();
+		if(streams == null) {
+			streams.mmsegTokenizer = new MMSegTokenizer(newSeg(), reader);
+			streams.tokenFilter = new LowerCaseFilter(streams.mmsegTokenizer);
+			setPreviousTokenStream(streams);
 		} else {
-			mmSegTokenizer.reset(reader);
+			streams.mmsegTokenizer.reset(reader);
 		}
 		
-		return mmSegTokenizer;
+		return streams.tokenFilter;
 	}
 
 	@Override
 	public TokenStream tokenStream(String fieldName, Reader reader) {
 		TokenStream ts = new MMSegTokenizer(newSeg(), reader);
-		return ts;
+		return new LowerCaseFilter(ts);
+	}
+	
+	private static final class SavedStreams {
+		MMSegTokenizer mmsegTokenizer;
+		TokenFilter tokenFilter;
 	}
 }

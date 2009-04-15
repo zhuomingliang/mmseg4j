@@ -3,11 +3,9 @@ package com.chenlb.mmseg4j;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -16,13 +14,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
-import com.chenlb.mmseg4j.example.DicTransform;
-import com.chenlb.mmseg4j.example.DicTransform.WriterRow;
-
 import junit.framework.TestCase;
+
+import com.chenlb.mmseg4j.example.DicTransform.WriterRow;
 
 public class Test extends TestCase {
 
@@ -163,7 +159,7 @@ public class Test extends TestCase {
 				.append(cn.getFreq()+"").append('\t')
 				.append(cn.getMaxLen()+"").append('\t')
 				.append(cn.wordNum()+"").append('\t')
-				.append(Arrays.toString(cn.getLens())).append("\r\n");
+				.append("\r\n");
 		}
 		writer.close();
 		System.out.println("writer use "+(now()-start)+"ms");
