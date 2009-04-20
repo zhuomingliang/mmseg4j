@@ -65,4 +65,6 @@ java -cp .;mmseg4j-1.6.jar com.chenlb.mmseg4j.example.MaxWord 这里是字符串
 
 在 solr 1.3 与 lucene 2.4 测试过，官方博客 http://blog.chenlb.com/topics/category/mmseg4j ， 如果发现问题或bug与我联系 chenlb2008@gmail.com 。
 
+1.7.2 与 1.6.2 开始核心的程序与 lucene 和 solr 扩展分开打包，方便兼容低版本的 lucene，同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)。
+
 可以在 http://code.google.com/p/mmseg4j/issues/list 提出希望 mmseg4j 有的功能。 
