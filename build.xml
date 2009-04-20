@@ -60,16 +60,34 @@
 		<copy file="data/units.dic" todir="${build.java.dir}/data" preservelastmodified="true" />
 	</target>
 
-	<target name="build" depends="build.java,jar" />
+	<target name="build" depends="build.java,jar,jar.core,jar.analysis,jar.solr" />
 	<target name="rebuild" depends="clean-all,build" />
 	<target name="jar" depends="build.java">
-		<jar destfile="${build.dir}/${project.name}-${version}.jar" basedir="${build.java.dir}" >
+		<jar destfile="${build.dir}/${project.name}-all-${version}.jar" basedir="${build.java.dir}" >
 			<manifest>
 				<attribute name="Main-Class" value="com.chenlb.mmseg4j.example.Complex"/>
 			</manifest>
 		</jar>
 	</target>
-
+	<target name="jar.core" depends="build.java">
+		<jar destfile="${build.dir}/${project.name}-core-${version}.jar" basedir="${build.java.dir}" >
+			<manifest>
+				<attribute name="Main-Class" value="com.chenlb.mmseg4j.example.Complex"/>
+			</manifest>
+			<exclude name="**/analysis/**"/>
+			<exclude name="**/solr/**"/>
+		</jar>
+	</target>	
+	<target name="jar.analysis" depends="build.java">
+		<jar destfile="${build.dir}/${project.name}-analysis-${version}.jar" basedir="${build.java.dir}" >
+			<include name="**/analysis/**"/>
+		</jar>
+	</target>
+	<target name="jar.solr" depends="build.java">
+		<jar destfile="${build.dir}/${project.name}-solr-${version}.jar" basedir="${build.java.dir}" >
+			<include name="**/solr/**"/>
+		</jar>
+	</target>
 	<target name="clean">
 		<delete includeEmptyDirs="true">
 			<fileset dir="${build.classes.dir}">

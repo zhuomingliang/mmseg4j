@@ -47,6 +47,7 @@ public class MMSegAnalyzer extends Analyzer {
 		
 		SavedStreams streams = (SavedStreams) getPreviousTokenStream();
 		if(streams == null) {
+			streams = new SavedStreams();
 			streams.mmsegTokenizer = new MMSegTokenizer(newSeg(), reader);
 			streams.tokenFilter = new LowerCaseFilter(streams.mmsegTokenizer);
 			setPreviousTokenStream(streams);
