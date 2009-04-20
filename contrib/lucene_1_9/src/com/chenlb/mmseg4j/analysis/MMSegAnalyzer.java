@@ -1,11 +1,9 @@
 package com.chenlb.mmseg4j.analysis;
 
-import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
-import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 
 import com.chenlb.mmseg4j.Dictionary;
@@ -41,7 +39,7 @@ public class MMSegAnalyzer extends Analyzer {
 		return new MaxWordSeg(dic);
 	}
 	
-	@Override
+	/*// lucene 底版本不支持
 	public TokenStream reusableTokenStream(String fieldName, Reader reader)
 			throws IOException {
 		
@@ -57,15 +55,17 @@ public class MMSegAnalyzer extends Analyzer {
 		
 		return streams.tokenFilter;
 	}
-
-	@Override
-	public TokenStream tokenStream(String fieldName, Reader reader) {
-		TokenStream ts = new MMSegTokenizer(newSeg(), reader);
-		return new LowerCaseFilter(ts);
-	}
 	
 	private static final class SavedStreams {
 		MMSegTokenizer mmsegTokenizer;
 		TokenFilter tokenFilter;
 	}
+	*/
+
+	public TokenStream tokenStream(String fieldName, Reader reader) {
+		TokenStream ts = new MMSegTokenizer(newSeg(), reader);
+		return new LowerCaseFilter(ts);
+	}
+	
+	
 }

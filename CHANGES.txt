@@ -1,3 +1,6 @@
+---------1.6.2-----------
+1.添加 lowerCaseFilter 后的一个 bug: NullPointerException
+2.核发程序与 lucene 和 solr 扩展分开打包, 同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)
 ---------1.6.1-----------
 1.要比较的词不从 char[] sen 里复制,直接与词库结构比较, 性能提升10% 
 2.analyzer 添加 LowerCaseFilter

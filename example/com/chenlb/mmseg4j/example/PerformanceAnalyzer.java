@@ -45,12 +45,12 @@ public class PerformanceAnalyzer {
 				FileInputStream ftxt = new FileInputStream(txt);
 				int s = ftxt.available();
 				size += s;
-				TokenStream ts = analyzer.tokenStream("text", new InputStreamReader(ftxt));
+				TokenStream ts = analyzer.reusableTokenStream("text", new InputStreamReader(ftxt));
 				OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(new File(txt.getAbsoluteFile()+"."+outputChipName+".word")));
 				BufferedWriter bw = new BufferedWriter(osw);
 				long start = System.currentTimeMillis();
 				for(Token t= new Token(); (t=ts.next(t)) !=null;) {
-					bw.append(new String(t.term())).append("\r\n");
+					bw.append(t.termText()).append("\r\n");
 				}
 				long t = System.currentTimeMillis() - start;
 				time += t;
