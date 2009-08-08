@@ -27,10 +27,6 @@ public class MMSegTokenizer extends Tokenizer {
 	
 	public MMSegTokenizer(Seg seg, Reader input) {
 		super(input);
-		init(seg);
-	}
-
-	private void init(Seg seg) {
 		mmSeg = new MMSeg(input, seg);
 	}
 	
@@ -40,7 +36,7 @@ public class MMSegTokenizer extends Tokenizer {
 	
 	public void reset(Reader input) throws IOException {
 		super.reset(input);
-		mmSeg.reset(this.input);
+		mmSeg.reset(input);
 		chunk = null;
 		wordIdx = 0;
 		//startOffset = 0;

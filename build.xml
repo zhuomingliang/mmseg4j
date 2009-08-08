@@ -88,6 +88,32 @@
 			<include name="**/solr/**"/>
 		</jar>
 	</target>
+	<target name="zip" depends="build">
+		<delete file="${build.dir}/${project.name}-${version}.zip"></delete>
+		<!--mkdir dir="temp-zip/lib"/-->
+		<copy todir="temp-zip/dist" preservelastmodified="true">
+			<fileset dir="${build.dir}">
+				<include name="${project.name}-*-${version}.jar"/>
+				<exclude name="${project.name}-all-${version}.jar"/>
+			</fileset>
+		<!--
+			<fileset dir="lib">
+				<include name="*.jar"/>
+			</fileset>
+		-->
+		</copy>
+		<copy todir="temp-zip" preservelastmodified="true">
+			<fileset dir="${build.dir}">
+				<include name="${project.name}-all-${version}.jar"/>
+			</fileset>
+			<fileset dir="">
+				<include name="*.txt"/>
+			</fileset>
+		</copy>
+		<zip destfile="${build.dir}/${project.name}-${version}.zip" basedir="temp-zip">
+		</zip>
+		<delete dir="temp-zip"></delete>
+	</target>
 	<target name="clean">
 		<delete includeEmptyDirs="true">
 			<fileset dir="${build.classes.dir}">
