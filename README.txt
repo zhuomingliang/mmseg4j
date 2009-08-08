@@ -19,7 +19,8 @@
  * 1.5版的分词速度simple算法是 1100kb/s左右、complex算法是 700kb/s左右，（测试机：AMD athlon 64 2800+ 1G内存 xp）。
  * 1.6版在complex基础上实现了最多分词(max-word)。“很好听” -> "很好|好听"; “中华人民共和国” -> "中华|华人|共和|国"; “中国人民银行” -> "中国|人民|银行"。
  * 1.7-beta 版, 目前 complex 1200kb/s左右, simple 1900kb/s左右, 但内存开销了50M左右. 上几个版都是在10M左右.
-mmseg4j实现的功能详情请看：http://mmseg4j.googlecode.com/svn/trunk/CHANGES.txt
+ 
+mmseg4j实现的功能详情请看：http://mmseg4j.googlecode.com/svn/branches/mmseg4j-1.7/CHANGES.txt
 
 3、在 com.chenlb.mmseg4j.example包里的类示例了三种分词效果。
 
@@ -63,8 +64,8 @@ java -cp .;mmseg4j-1.6.jar com.chenlb.mmseg4j.example.MaxWord 这里是字符串
  * data/words.dic 是词库文件，一行一词，当然你也可以使用自己的，1.5版本使用 sogou 词库，1.0的版本是用 rmmseg 带的词库。
  * data/wordsxxx.dic 1.6版支持多个词库文件，data 目录（或你定义的目录）下读到"words"前缀且".dic"为后缀的文件。如：data/words-my.dic。
 
-在 solr 1.3 与 lucene 2.4 测试过，官方博客 http://blog.chenlb.com/topics/category/mmseg4j ， 如果发现问题或bug与我联系 chenlb2008@gmail.com 。
+在 solr 1.3 与 lucene 2.4 测试过，官方博客 http://blog.chenlb.com/category/mmseg4j ， 如果发现问题或bug与我联系 chenlb2008@gmail.com 。
 
 1.7.2 与 1.6.2 开始核心的程序与 lucene 和 solr 扩展分开打包，方便兼容低版本的 lucene，同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)。
 
-可以在 http://code.google.com/p/mmseg4j/issues/list 提出希望 mmseg4j 有的功能。 
+可以在 http://code.google.com/p/mmseg4j/issues/list 提出 bug 或希望 mmseg4j 有的功能。 

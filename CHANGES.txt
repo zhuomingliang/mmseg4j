@@ -1,6 +1,8 @@
+---------1.7.3-----------
+Dictionary 添加 finalize 方法。修正 tomcat reload 时 OOM 的 bug: http://code.google.com/p/mmseg4j/issues/detail?id=4
 ---------1.7.2-----------
 1.添加 lowerCaseFilter 后的一个 bug: NullPointerException
-2.核发程序与 lucene 和 solr 扩展分开打包, 同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)
+2.核心程序与 lucene 和 solr 扩展分开打包, 同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)
 ---------1.7.1-----------
 没有此版本. 为了保存 1.6 系同版本小号
 ---------1.7-------------

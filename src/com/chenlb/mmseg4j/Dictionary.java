@@ -34,6 +34,18 @@ public class Dictionary {
 	private static final Map<File, Map<Character, Object>> units = new ConcurrentHashMap<File, Map<Character, Object>>();
 	private static Map<Character, Object> defaultUnit = null;	//默认的单个字的单位
 	
+	protected void finalize() throws Throwable {
+		dicPath = null;
+		dict = null;
+		unit = null;
+		
+		defalutPath = null;
+		defaultUnit = null;
+		
+		dics.clear();
+		units.clear();
+	}
+
 	/**
 	 * 加载chars.dic,words.dic文件.<p/>
 	 * 查找目录顺序:
