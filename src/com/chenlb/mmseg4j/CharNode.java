@@ -1,7 +1,6 @@
 package com.chenlb.mmseg4j;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,10 +13,6 @@ public class CharNode {
 
 	private int freq = -1;	//Degree of Morphemic Freedom of One-Character, 单字才需要
 	private int maxLen = 0;	//wordTail的最长
-
-	
-	//private CharArrayComparator cac = new CharArrayComparator();
-	//private CharArraySearhComparator casc = new CharArraySearhComparator();
 
 	private KeyTree ktWordTails = new KeyTree();
 	private int wordNum = 0;
@@ -79,81 +74,11 @@ public class CharNode {
 		return ktWordTails.maxMatch(tailLens, sen, wordTailOffset);
 	}
 	
-	/**
-	 * copy Collections.indexedBinarySearch
-	 */
-	@SuppressWarnings("unused")
-	private static int binarySearch(ArrayList<char[]> l, char[] key, int offset, int len, CharArraySearhComparator c) {
-		int low = 0;
-		int high = l.size()-1;
-
-		while (low <= high) {
-		    int mid = (low + high) >> 1;
-		    char[] midVal = l.get(mid);
-		    int cmp = c.compare(midVal, key, offset, len);	//key第一个不算
-
-		    if (cmp < 0)
-			low = mid + 1;
-		    else if (cmp > 0)
-			high = mid - 1;
-		    else
-			return mid; // key found
-		}
-		return -(low + 1);  // key not found
-	}
-	
 	public int getMaxLen() {
 		return maxLen;
 	}
 	public void setMaxLen(int maxLen) {
 		this.maxLen = maxLen;
-	}
-
-	public static class CharArrayComparator implements Comparator<char[]> {
-
-		public int compare(char[] a, char[] b) {
-			int len = Math.min(a.length, b.length);
-			int i = 0;
-			while(i<len) {
-				if(a[i] > b[i]) {
-					return 1;
-				} else if(a[i] < b[i]) {
-					return -1;
-				}
-				i++;
-				//a[i] == b[i]
-			}
-			if(i < a.length) {
-				return 1;
-			} else if(i < b.length) {
-				return -1;
-			}
-			return 0;
-		}
-	}
-	
-	public static class CharArraySearhComparator extends CharArrayComparator {
-
-		public int compare(char[] a, char[] b, int bOffest, int bLen) {
-			int aLen = a.length;//, bLen = bEnd-bOffest;
-			int len = Math.min(aLen, bLen);
-			int iA = 0, iB = bOffest;
-			while(iA<len) {
-				if(a[iA] > b[iB]) {
-					return 1;
-				} else if(a[iA] < b[iB]) {
-					return -1;
-				}
-				iA++; iB++;
-				
-			}
-			if(iA < aLen) {
-				return 1;
-			} else if(iA < bLen) {
-				return -1;
-			}
-			return 0;
-		}
 	}
 	
 	public static class KeyTree {

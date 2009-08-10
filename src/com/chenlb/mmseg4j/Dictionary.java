@@ -8,10 +8,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -33,6 +33,21 @@ public class Dictionary {
 	private static final Map<File, Map<Character, CharNode>> dics = new ConcurrentHashMap<File, Map<Character, CharNode>>();
 	private static final Map<File, Map<Character, Object>> units = new ConcurrentHashMap<File, Map<Character, Object>>();
 	private static Map<Character, Object> defaultUnit = null;	//默认的单个字的单位
+	
+	protected void finalize() throws Throwable {
+		/* 
+		 * 释放资源，使 class reload 的时也可以释放词库
+		 */
+		dicPath = null;
+		dict = null;
+		unit = null;
+		
+		defalutPath = null;
+		defaultUnit = null;
+		
+		dics.clear();
+		units.clear();
+	}
 	
 	/**
 	 * 加载chars.dic,words.dic文件.<p/>
@@ -63,7 +78,7 @@ public class Dictionary {
 	private void init(File path) {
 		dicPath = path;
 		try {
-			//DicKey dk = new DicKey(path.getAbsolutePath());
+			//先"目录缓"存中取
 			Map<Character, CharNode> dic = dics.get(path);
 			if(dic == null) {
 				dic = loadDic(path);
@@ -91,7 +106,7 @@ public class Dictionary {
 		return System.currentTimeMillis();
 	}
 	
-	private Map<Character, CharNode> loadDic(/*File charsFile,*/ File wordsPath) throws IOException {
+	private Map<Character, CharNode> loadDic(File wordsPath) throws IOException {
 		InputStream charsIn = null;
 		File charsFile = new File(wordsPath, "chars.dic");
 		if(charsFile.exists()) {
@@ -126,7 +141,7 @@ public class Dictionary {
 			}
 		});
 		log.info("chars loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+charsFile);
-
+		//只要 wordsXXX.dic的文件
 		File[] wordsFiles = wordsPath.listFiles(new FilenameFilter() {
 
 			public boolean accept(File dir, String name) {
@@ -157,11 +172,12 @@ public class Dictionary {
 		}
 		
 		//sort
+		/*	//key tree 为数据结构的不需要排序了
 		s = now();
 		for(Entry<Character, CharNode> subSet : dic.entrySet()) {
 			subSet.getValue().sort();
 		}
-		log.info("sort time="+(now()-s)+"ms");
+		log.info("sort time="+(now()-s)+"ms");*/
 		log.info("load dic use time="+(now()-ss)+"ms");
 		return dic;
 	}
@@ -281,8 +297,14 @@ public class Dictionary {
 			String defPath = System.getProperty("mmseg.dic.path");
 			log.info("look up in mmseg.dic.path="+defPath);
 			if(defPath == null) {
-				defPath = System.getProperty("user.dir")+"/data";
-				log.info("look up in user.dir="+defPath);
+				URL url = Dictionary.class.getClassLoader().getResource("data");
+				if(url != null) {
+					defPath = url.getFile();
+					log.info("look up in classpath="+defPath);
+				} else {
+					defPath = System.getProperty("user.dir")+"/data";
+					log.info("look up in user.dir="+defPath);
+				}
 				
 			}
 			

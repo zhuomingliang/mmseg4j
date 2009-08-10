@@ -15,35 +15,19 @@ public class MMSegTokenizer extends Tokenizer {
 
 	private MMSeg mmSeg;
 	
-/*	public MMSegTokenizer(Reader input) {
-		super(input);
-		init(new ComplexSeg(new Dictionary()));
-	}
-
-	public MMSegTokenizer(Reader input, Dictionary dic) {
-		super(input);
-		init(new ComplexSeg(dic));
-	}*/
-	
 	public MMSegTokenizer(Seg seg, Reader input) {
 		super(input);
-		init(seg);
-	}
-
-	private void init(Seg seg) {
 		mmSeg = new MMSeg(input, seg);
 	}
 	
 	private Chunk chunk = null;
 	private int wordIdx = 0;
-	//private int startOffset = 0;
 	
 	public void reset(Reader input) throws IOException {
 		super.reset(input);
-		mmSeg.reset(this.input);
+		mmSeg.reset(input);
 		chunk = null;
 		wordIdx = 0;
-		//startOffset = 0;
 	}
 
 	public Token next(Token reusableToken) throws IOException {
@@ -52,20 +36,15 @@ public class MMSegTokenizer extends Tokenizer {
 			chunk = mmSeg.next();
 			wordIdx = 0;
 			
-			if(chunk != null) {
-				//startOffset = chunk.getStartOffset();
-			} else {
+			if(chunk == null) {
 				return null;
 			}
 		}
-		
+		// chunk 按顺序放着词
 		if(wordIdx < chunk.getCount()) {
 			Word word = chunk.getWords()[wordIdx++];
-			//if(word != null) {
-				token = reusableToken.reinit(word.getSen(), word.getWordOffset(), word.getLength(), word.getStartOffset(), word.getEndOffset());
-				//chunk = null;
-				//break;
-			//}
+			
+			token = reusableToken.reinit(word.getSen(), word.getWordOffset(), word.getLength(), word.getStartOffset(), word.getEndOffset());
 		}
 		
 		if(wordIdx >= chunk.getCount()) {
@@ -74,6 +53,5 @@ public class MMSegTokenizer extends Tokenizer {
 		
 		return token;
 	}
-
 
 }

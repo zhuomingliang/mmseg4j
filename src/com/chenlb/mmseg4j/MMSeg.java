@@ -15,8 +15,9 @@ public class MMSeg {
 	private Sentence currentSentence;
 	
 	public MMSeg(Reader input, Seg seg) {
-		this.reader = new BufferedReader(input);
 		this.seg = seg;
+		
+		reset(input);
 	}
 
 	private int readedIdx = -1;
@@ -24,7 +25,7 @@ public class MMSeg {
 	private int nextData = -1;
 	
 	public void reset(Reader input) {
-		this.reader = input;
+		this.reader = new BufferedReader(input);
 		currentSentence = null;
 		bufSentence.setLength(0);
 		readedIdx = -1;
