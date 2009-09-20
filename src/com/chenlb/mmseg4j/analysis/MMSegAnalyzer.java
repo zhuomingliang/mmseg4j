@@ -22,14 +22,14 @@ public class MMSegAnalyzer extends Analyzer {
 	protected Dictionary dic;
 	
 	public MMSegAnalyzer() {
-		dic = new Dictionary();
+		dic = Dictionary.getInstance();
 	}
 	
 	/**
 	 * @param path 词库路径
 	 */
 	public MMSegAnalyzer(String path) {
-		dic = new Dictionary(path);
+		dic = Dictionary.getInstance(path);
 	}
 	
 	public MMSegAnalyzer(Dictionary dic) {

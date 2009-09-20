@@ -2,7 +2,6 @@ package com.chenlb.mmseg4j;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -17,8 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import junit.framework.TestCase;
-
-import com.chenlb.mmseg4j.example.DicTransform.WriterRow;
 
 public class Test extends TestCase {
 
@@ -118,12 +115,20 @@ public class Test extends TestCase {
 		}
 	}
 	
+	public void testShowUnicode() {
+		int c = 0x2F81A;
+		int mc = Character.toLowerCase(c);
+		StringBuilder sb = new StringBuilder();
+		sb.appendCodePoint(c).append(" --to low--> ").appendCodePoint(mc);
+		System.out.println("c="+c+",mc="+mc+"\n"+sb);
+	}
+	
 	private static long now() {
 		return System.currentTimeMillis();
 	}
 	
 	public void testSeeSogouDic() throws IOException {
-		Dictionary dic = new Dictionary("sogou");
+		Dictionary dic = Dictionary.getInstance("sogou");
 		Map<Character, CharNode> dict = dic.getDict();
 		long start = now();
 		List<Map.Entry<Character, CharNode>> es = new ArrayList<Map.Entry<Character,CharNode>>(dict.size());
@@ -163,23 +168,5 @@ public class Test extends TestCase {
 		}
 		writer.close();
 		System.out.println("writer use "+(now()-start)+"ms");
-	}
-	
-	public void testTwoThreeWordSort() throws IOException {
-		final ArrayList<char[]> words = new ArrayList<char[]>(110000);
-		Dictionary.load(new FileInputStream(new File("dic/two-three-words.dic")), new Dictionary.FileLoading() {
-
-			public void row(String line, int n) {
-				if(line != null && !"#".startsWith(line) && line.length() > 1) {
-					words.add(line.toCharArray());
-				}
-			}
-		});
-		Collections.sort(words, new CharNode.CharArrayComparator());
-		WriterRow wr = new WriterRow(new File("dic/twree-sort-words.dic"));
-		for(char[] line : words) {
-			wr.writerRow(line);
-		}
-		wr.close();
 	}
 }

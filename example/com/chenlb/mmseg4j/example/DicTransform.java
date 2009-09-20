@@ -17,6 +17,7 @@ public class DicTransform {
 		String transform(String line);
 	}
 	
+	/** 去频率*/
 	public static class DeFreq implements Transform {
 
 		public String transform(String line) {
@@ -28,6 +29,21 @@ public class DicTransform {
 			return null;
 		}
 		
+	}
+	
+	public static class NoAttr implements Transform {
+		WriterRow wr = new WriterRow(new File("dic/no-word-attr.dic"));
+		public String transform(String line) {
+			String[] w = line.split("\\s+");
+			if(w.length > 0 && !"".equals(w[0])) {
+				if(w.length < 3) {
+					wr.writerRow(w[0]);	//没有词性的写到哪一文件
+				} else {
+					return w[0];
+				}
+			}
+			return null;
+		}
 	}
 	
 	public static class TwoOrThreeChar extends DeFreq {
@@ -120,13 +136,13 @@ public class DicTransform {
 		File file = new File(words);
 		//File path = file.getParentFile();
 		//File dist = new File("dic/words.dic");
-		File dist = new File("dic/two-three-words.dic");
+		File dist = new File("dic/word-with-attr.dic");
 		DicTransform dt = new DicTransform();
 		//只要词,不频率
 		//dt.transform(file, charset, dist, new DeFreq());
 		//只要两或三个字的词.
-		dt.transform(file, charset, dist, new TwoOrThreeChar());
-		
+		//dt.transform(file, charset, dist, new TwoOrThreeChar());
+		dt.transform(file, charset, dist, new NoAttr());
 	}
 
 }

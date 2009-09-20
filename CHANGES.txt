@@ -1,3 +1,18 @@
+---------1.8-dev 2009-08-11-----------
+new:
+	1、自动检测词典文件变更，并自动重新加载词库。
+	?2、增加 word 的 api。
+
+changes:
+	1、默认在 classpath 中加载 data 目录（词库目录），找不到再找 user.dir/data 目录。
+	2、去除 sogou 高频无词性的词，合并 rmmseg 提供的词（是 mmseg4j 1.0 使用的词库），共计（14W 多词）。
+	3、Dictionary 改为词库目录缓存单例模式。
+	4、数字或英文开头的数字或英文不独立分出。如 MB991CH/A 分为 MB991CH A，CQ40-519TX 分为 CQ40 519TX
+	?5、Chunk 的内部类 Word 变成独立的类，并加一 type 给 Token 的 type 用。
+
+bugs:
+	1、Dictionary 添加 finalize 方法。修正 tomcat reload 时 OOM 的 bug: http://code.google.com/p/mmseg4j/issues/detail?id=4
+	2、MMSegTokenizer 在 lucene 2.4 编译的 在 lucene 2.9 中会报 java.lang.NoSuchFieldError: input。bug: http://code.google.com/p/mmseg4j/issues/detail?id=5
 ---------1.7.2-----------
 1.添加 lowerCaseFilter 后的一个 bug: NullPointerException
 2.核发程序与 lucene 和 solr 扩展分开打包, 同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)

@@ -36,10 +36,6 @@ public class CharNode {
 		this.freq = freq;
 	}
 	
-	public void sort() {
-		
-	}
-	
 	public int wordNum() {
 		return wordNum;
 	}

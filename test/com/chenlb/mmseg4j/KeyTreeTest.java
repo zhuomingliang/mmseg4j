@@ -25,7 +25,7 @@ public class KeyTreeTest extends TestCase {
 	}
 	
 	public void testMatch2() {
-		Dictionary dic = new Dictionary();
+		Dictionary dic = Dictionary.getInstance();
 		int tailLen = dic.maxMatch("中国人民银行".toCharArray(), 0);
 		assertEquals(tailLen, 5);
 	}

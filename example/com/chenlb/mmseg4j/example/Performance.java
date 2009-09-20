@@ -9,13 +9,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-import com.chenlb.mmseg4j.Chunk;
 import com.chenlb.mmseg4j.ComplexSeg;
 import com.chenlb.mmseg4j.Dictionary;
 import com.chenlb.mmseg4j.MMSeg;
 import com.chenlb.mmseg4j.Seg;
 import com.chenlb.mmseg4j.SimpleSeg;
-import com.chenlb.mmseg4j.Chunk.Word;
+import com.chenlb.mmseg4j.Word;
 
 public class Performance {
 
@@ -35,7 +34,7 @@ public class Performance {
 		}
 		String mode = System.getProperty("mode", "complex");
 		Seg seg = null;
-		Dictionary dic = new Dictionary();
+		Dictionary dic = Dictionary.getInstance();
 		if("simple".equals(mode)) {
 			seg = new SimpleSeg(dic);
 		} else {
@@ -53,19 +52,13 @@ public class Performance {
 		long time = 0;
 		for(File txt : txts) {
 			MMSeg mmSeg = new MMSeg(new InputStreamReader(new FileInputStream(txt)), seg);
-			Chunk chunk = null;
+			Word word = null;
 			OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(new File(txt.getAbsoluteFile()+"."+mode+".word")));
 			BufferedWriter bw = new BufferedWriter(osw);
 			long start = System.currentTimeMillis();
-			while((chunk=mmSeg.next())!=null) {
-				//int offset = chunk.getStartOffset();
-				for(Word word : chunk.getWords()) {
-					if(word != null) {
-						bw.append(new String(word.getString())).append("\r\n");
-						//offset += word.length;
-						
-					}
-				}
+			while((word=mmSeg.next())!=null) {
+
+				bw.append(new String(word.getString())).append("\r\n");
 			}
 			time += System.currentTimeMillis() - start;
 			bw.close();

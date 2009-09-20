@@ -4,8 +4,6 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
-import com.chenlb.mmseg4j.Dictionary.DicKey;
-
 public class DictionaryTest extends TestCase {
 
 	protected void setUp() throws Exception {
@@ -20,30 +18,42 @@ public class DictionaryTest extends TestCase {
 		System.out.println(String.format("total=%d, free=%d, max=%d, use=%d", total/1024, free/1024, max/1024, (total-free)/1024));
 	}
 	
-	public void loadDicMemoryUse() {
+	public void testloadDicMemoryUse() {
 		printMemory();
-		Dictionary dic = new Dictionary();
+		Dictionary dic = Dictionary.getInstance();
 		printMemory();
 	}
 	
-	public void loadDic() {
-		Dictionary dic = new Dictionary();
+	public void testloadDic() throws InterruptedException {
+		Dictionary dic = Dictionary.getInstance();
 		System.out.println("load match");
-		dic = new Dictionary();
+		dic = Dictionary.getInstance();
+		
+		Thread.sleep(100);
+		
+		dic.destroy();
+		System.out.println("reload");
+		dic = Dictionary.getInstance();
+		dic.destroy();
+		//dic = null;
 		System.out.println("load data");
-		dic = new Dictionary("data");
+		dic = Dictionary.getInstance("data");
+		dic.destroy();
+		//dic = null;
 		System.out.println("load sogou");
-		dic = new Dictionary("sogou");
+		dic = Dictionary.getInstance("sogou");
+		dic.destroy();
+		//dic = null;
 	}
 
-	public void loadMultiDic() {
-		Dictionary dic = new Dictionary();
+	public void testloadMultiDic() {
+		Dictionary dic = Dictionary.getInstance();
 		
 		assertTrue(dic.match("白云山"));
 	}
 	
 	public void testMatch() {
-		Dictionary dic = new Dictionary();
+		Dictionary dic = Dictionary.getInstance();
 		
 		assertTrue(dic.match("词典"));
 		
@@ -61,16 +71,5 @@ public class DictionaryTest extends TestCase {
 		System.out.println(f.getAbsolutePath());
 		System.out.println(f1);
 		System.out.println(f.equals(f1));
-	}
-	
-	public void testDicKey() {
-		DicKey dk = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data");
-		DicKey dk2 = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data/");
-		
-		assertFalse(dk.equals(dk2));
-		assertTrue(dk2.equals(dk2));
-		
-		dk = new DicKey("M:/eclipse 3.3.2/workspace/mmseg4j/data/");
-		assertTrue(dk.equals(dk2));
 	}
 }

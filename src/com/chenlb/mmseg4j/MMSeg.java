@@ -2,17 +2,24 @@ package com.chenlb.mmseg4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PushbackReader;
 import java.io.Reader;
+import java.util.LinkedList;
+import java.util.Queue;
 
-import com.chenlb.mmseg4j.Chunk.Word;
-
+/**
+ * Reader 流的分词(有字母,数字等), 析出中文(其实是 CJK)成句子 {@link Sentence} 再对 mmseg 算法分词.
+ * 
+ * @author chenlb 2009-9-20下午10:41:41
+ */
 public class MMSeg {
 	
-	private Reader reader;
+	private PushbackReader reader;
 	private Seg seg;
 	
 	private StringBuilder bufSentence = new StringBuilder(256);
 	private Sentence currentSentence;
+	private Queue<Word> bufWord;
 	
 	public MMSeg(Reader input, Seg seg) {
 		this.seg = seg;
@@ -20,43 +27,39 @@ public class MMSeg {
 		reset(input);
 	}
 
-	private int readedIdx = -1;
-	private int lastData = -1;
-	private int nextData = -1;
+	private int readedIdx = 0;
 	
 	public void reset(Reader input) {
-		this.reader = new BufferedReader(input);
+		this.reader = new PushbackReader(new BufferedReader(input), 20);
 		currentSentence = null;
+		bufWord = new LinkedList<Word>();
 		bufSentence.setLength(0);
-		readedIdx = -1;
-		lastData = -1;
-		nextData = -1;
+		readedIdx = 0;
 	}
 	
 	private int readNext() throws IOException {
-		int data = -1;
-		if(nextData >=0) {
-			data = nextData;
-			nextData = -1;
-		} else {
-			readedIdx++;
-			data = reader.read();
-		}
-		return data;
+		readedIdx++;
+		return reader.read();
 	}
 	
-	public Chunk next() throws IOException {
+	private void pushBack(int data) throws IOException {
+		readedIdx--;
+		reader.unread(data);
+	}
 
-		Chunk chunk = null;
-		if(currentSentence == null) {
+	
+	public Word next() throws IOException {
+		//先从缓存中取
+		Word word = bufWord.poll();;
+		if(word == null) {
 			bufSentence.setLength(0);
+
 			int data = -1;
-			int lastType = -1;
 			boolean read = true;
-			boolean returnWord = false;
-			boolean alsoReturnNextData = false;
 			while(read && (data=readNext()) != -1) {
+				read = false;	//默认一次可以读出同一类字符,就可以分词内容
 				int type = Character.getType(data);
+				String wordType = Word.TYPE_WORD;
 				switch(type) {
 				case Character.UPPERCASE_LETTER:
 				case Character.LOWERCASE_LETTER:
@@ -67,142 +70,238 @@ public class MMSeg {
 					 * 2. 0x391-0x3a9 -> Α-Ω	//希腊大写
 					 * 3. 0x3b1-0x3c9 -> α-ω	//希腊小写
 					 */
-					if(lastType < 0 || isLetter(lastType)) {
-						data = toAscii(data);
-						boolean available = true;
-						NationLetter nl = getNation(data);
-						switch(nl) {
-						case EN:
-							read = isAsciiLetter(toAscii(lastData));
-							break;
-						case RA:
-							read = isRussiaLetter(lastData);
-							break;
-						case GE:
-							read = isGreeceLetter(lastData);
-							break;
-						default :
-							read = false;
-							available = false;	//
-							type = -1;
+					data = toAscii(data);
+					bufSentence.appendCodePoint(data);
+					wordType = Word.TYPE_LETTER;
+					NationLetter nl = getNation(data);
+					switch(nl) {
+					case EN:
+						//字母后面的数字,如: VH049PA
+						ReadCharByAsciiOrDigit rcad = new ReadCharByAsciiOrDigit();
+						readChars(bufSentence, rcad);
+						if(rcad.hasDigit()) {
+							wordType = Word.TYPE_LETTER_OR_DIGIT;
 						}
-						read = lastType < 0 || read;
-						returnWord = true;
-						if(!read) {
-							if(available) {
-								nextData = data;
-							}
-							type = -1;	//单字处理
-						} else if(available) {
-							bufSentence.appendCodePoint(data);
-						}
-					} else {
-						nextData = data;	//下次再用
-						read = false;
+						break;
+					case RA:
+						readChars(bufSentence, new ReadCharByRussia());
+						break;
+					case GE:
+						readChars(bufSentence, new ReadCharByGreece());
+						break;
 					}
-					
-					lastType = type;
+					bufWord.add(createWord(bufSentence, wordType));
+
+					bufSentence.setLength(0);
+
 					break;
 				case Character.OTHER_LETTER:
 					/*
 					 * 1. 0x3041-0x30f6 -> ぁ-ヶ	//日文(平|片)假名
 					 * 2. 0x3105-0x3129 -> ㄅ-ㄩ	//注意符号
 					 */
-					if(lastType < 0 || isCJK(lastType)) {
-						bufSentence.appendCodePoint(data);
-						returnWord = false;
-					} else {
-						if(isDigit(lastType) && seg.isUnit(data)) {
-							alsoReturnNextData = true;
-						}
-						nextData = data;
-						read = false;
-					}
-					lastType = type;
+
+					bufSentence.appendCodePoint(data);
+					readChars(bufSentence, new ReadCharByType(Character.OTHER_LETTER));
+
+					currentSentence = createSentence(bufSentence);
+
+					bufSentence.setLength(0);
+
 					break;
 				case Character.DECIMAL_DIGIT_NUMBER:
-					if(lastType < 0 || isDigit(lastType)) {
-						bufSentence.appendCodePoint(toAscii(data));
-						returnWord = true;
-					} else {
-						nextData = data;
-						read = false;
+					bufSentence.appendCodePoint(toAscii(data));
+					readChars(bufSentence, new ReadCharDigit());	//读后面的数字, AsciiLetterOr
+					wordType = Word.TYPE_DIGIT;
+					int d = readNext();
+					if(d > -1) {
+						if(seg.isUnit(d)) {	//单位,如时间
+							bufWord.add(createWord(bufSentence, Word.TYPE_DIGIT));	//先把数字添加(独立)
+
+							bufSentence.setLength(0);
+
+							bufSentence.appendCodePoint(d);
+							wordType = Word.TYPE_WORD;	//单位是 word
+						} else {	//后面可能是字母和数字
+							pushBack(d);
+							if(readChars(bufSentence, new ReadCharByAsciiOrDigit()) > 0) {	//如果有字母或数字都会连在一起.
+								wordType = Word.TYPE_DIGIT_OR_LETTER;
+							}
+						}
 					}
-					lastType = type;
+
+					bufWord.add(createWord(bufSentence, wordType));
+
+
+					bufSentence.setLength(0);	//缓存的字符清除
+
 					break;
 				case Character.LETTER_NUMBER:
 					// ⅠⅡⅢ 单分
-					if(lastType < 0) {
-						bufSentence.appendCodePoint(data);
-						returnWord = true;
-					} else {
-						if(lastType != Character.LETTER_NUMBER) {//处理上次积累的, 当前的下一次再处理
-							nextData = data;
-						}
+					bufSentence.appendCodePoint(data);
+					readChars(bufSentence, new ReadCharByType(Character.LETTER_NUMBER));
+
+					int startIdx = readedIdx - bufSentence.length();
+					for(int i=0; i<bufSentence.length(); i++) {
+						bufWord.add(new Word(new char[] {bufSentence.charAt(i)}, startIdx++, Word.TYPE_LETTER_NUMBER));
 					}
-					read = false;
-					lastType = -1;
+
+					bufSentence.setLength(0);	//缓存的字符清除
+
 					break;
 				case Character.OTHER_NUMBER:
 					//①⑩㈠㈩⒈⒑⒒⒛⑴⑽⑾⒇ 连着用
-					if(lastType < 0 || lastType == Character.OTHER_NUMBER) {
-						bufSentence.appendCodePoint(data);
-						returnWord = true;
-					} else {
-						nextData = data;
-						read = false;
-					}
-					
-					lastType = type;
+					bufSentence.appendCodePoint(data);
+					readChars(bufSentence, new ReadCharByType(Character.OTHER_NUMBER));
+
+					bufWord.add(createWord(bufSentence, Word.TYPE_OTHER_NUMBER));
+					bufSentence.setLength(0);
 					break;
 				default :
-					if(lastType >=0) {
-						read = false;
-					}
-					lastType = -1;
-				}
-				lastData = data;
-			}
-			
-			if(bufSentence.length() > 0) {
-				int startIdx = readedIdx - bufSentence.length();
-				if(returnWord) {
-					chunk = new Chunk();
-					char[] word = new char[bufSentence.length()];
-					bufSentence.getChars(0, bufSentence.length(), word, 0);
-					chunk.words[0] = new Word(word, startIdx);
-					//chunk.setStartOffset(startIdx);
-					if(alsoReturnNextData && nextData > 0) {	//目前只是 年月日
-						char[] w = new char[1];
-						w[0] = (char) nextData;
-						chunk.words[1] = new Word(w, startIdx+word.length);
-						nextData = -1;
-					}
-					//sb.append(bufSentence);
-					return chunk;
-				} else {
-					char[] chs = new char[bufSentence.length()];
-					bufSentence.getChars(0, bufSentence.length(), chs, 0);
-					currentSentence = new Sentence(chs, startIdx);
+					//其它认为无效字符
+					read = true;
 				}
 			}
-		}
-		
-		if(currentSentence != null) {
-			chunk = seg.seg(currentSentence);
-			if(currentSentence.isFinish()) {
+				
+			// 中文分词
+			if(currentSentence != null) {
+				do {
+					Chunk chunk = seg.seg(currentSentence);
+					for(int i=0; i<chunk.getCount(); i++) {
+						bufWord.add(chunk.getWords()[i]);
+					}
+				} while (!currentSentence.isFinish());
+				
 				currentSentence = null;
 			}
+			
+			word = bufWord.poll();
 		}
 		
-		return chunk;
+		return word;
 	}
 	
 	
 	/**
+	 * 读取下一串指定类型字符.
+	 * 
+	 * @author chenlb 2009-8-15下午09:09:50
+	 */
+	private static abstract class ReadChar {
+		/**
+		 * 这个字符是否读取, 不读取也不会读下一个字符.
+		 */
+		abstract boolean isRead(int codePoint);
+		int transform(int codePoint) {
+			return codePoint;
+		}
+	}
+	
+	/**
+	 * 读取下一串指定类型的字符放到 bufSentence 中.
+	 * @param bufSentence
+	 * @param readChar 判断字符的细节.
+	 * @return 返回读取的个数
+	 * @throws IOException {@link #readNext()} 或 {@link #pushBack()} 抛出的.
+	 */
+	private int readChars(StringBuilder bufSentence, ReadChar readChar) throws IOException {
+		int num = 0;
+		int data = -1;
+		while((data = readNext()) != -1) {
+			if(readChar.isRead(data)) {
+				bufSentence.appendCodePoint(readChar.transform(data));
+				num++;
+			} else {	//不是数字回压,要下一步操作
+				pushBack(data);
+				break;
+			}
+		}
+		return num;
+	}
+	
+	/**读取数字*/
+	private static class ReadCharDigit extends ReadChar {
+
+		boolean isRead(int codePoint) {
+			int type = Character.getType(codePoint);
+			return isDigit(type);
+		}
+		
+		int transform(int codePoint) {
+			return toAscii(codePoint);
+		}
+		
+	}
+	
+	/**读取字母或数字*/
+	private static class ReadCharByAsciiOrDigit extends ReadCharDigit {
+
+		private boolean hasDigit = false;
+		boolean isRead(int codePoint) {
+			hasDigit = super.isRead(codePoint);
+			return isAsciiLetter(codePoint) || hasDigit;
+		}
+		boolean hasDigit() {
+			return hasDigit;
+		}
+	}
+	
+	/**读取俄语*/
+	private static class ReadCharByRussia extends ReadCharDigit {
+
+		boolean isRead(int codePoint) {
+			return isRussiaLetter(codePoint);
+		}
+		
+	}
+	
+	/**读取希腊 */
+	private static class ReadCharByGreece extends ReadCharByAsciiOrDigit {
+
+		boolean isRead(int codePoint) {
+			return isGreeceLetter(codePoint);
+		}
+		
+	}
+	
+	/**读取指定类型的字符*/
+	private static class ReadCharByType extends ReadChar {
+		int charType;
+		public ReadCharByType(int charType) {
+			this.charType = charType;
+		}
+
+		boolean isRead(int codePoint) {
+			int type = Character.getType(codePoint);
+			return type == charType;
+		}
+		
+	}
+	
+	private Word createWord(StringBuilder bufSentence, String type) {
+		return new Word(toChars(bufSentence), startIdx(bufSentence), type);
+	}
+	
+	private Sentence createSentence(StringBuilder bufSentence) {
+		return new Sentence(toChars(bufSentence), startIdx(bufSentence));
+	}
+	
+	/**取得 bufSentence 的第一个字符在整个文本中的位置*/
+	private int startIdx(StringBuilder bufSentence) {
+		return readedIdx - bufSentence.length();
+	}
+	
+	/**从 StringBuilder 里复制出 char[] */
+	private static char[] toChars(StringBuilder bufSentence) {
+		char[] chs = new char[bufSentence.length()];
+		bufSentence.getChars(0, bufSentence.length(), chs, 0);
+		return chs;
+	}
+	
+	/**
 	 * 双角转单角
 	 */
-	private int toAscii(int codePoint) {
+	private static int toAscii(int codePoint) {
 		if((codePoint>=65296 && codePoint<=65305)	//０-９
 				|| (codePoint>=65313 && codePoint<=65338)	//Ａ-Ｚ
 				|| (codePoint>=65345 && codePoint<=65370)	//ａ-ｚ
@@ -212,15 +311,15 @@ public class MMSeg {
 		return codePoint;
 	}
 	
-	private boolean isAsciiLetter(int codePoint) {
+	private static boolean isAsciiLetter(int codePoint) {
 		return (codePoint >= 'A' && codePoint <= 'Z') || (codePoint >= 'a' && codePoint <= 'z');
 	}
 	
-	private boolean isRussiaLetter(int codePoint) {
+	private static boolean isRussiaLetter(int codePoint) {
 		return (codePoint >= 'А' && codePoint <= 'я') || codePoint=='Ё' || codePoint=='ё';
 	}
 	
-	private boolean isGreeceLetter(int codePoint) {
+	private static boolean isGreeceLetter(int codePoint) {
 		return (codePoint >= 'Α' && codePoint <= 'Ω') || (codePoint >= 'α' && codePoint <= 'ω');
 	}
 	/**
@@ -244,13 +343,15 @@ public class MMSeg {
 		return NationLetter.UNKNOW;
 	}
 	
-	private boolean isCJK(int type) {
+	@SuppressWarnings("unused")
+	private static boolean isCJK(int type) {
 		return type == Character.OTHER_LETTER;
 	}
-	private boolean isDigit(int type) {
+	private static boolean isDigit(int type) {
 		return type == Character.DECIMAL_DIGIT_NUMBER;
 	}
-	private boolean isLetter(int type) {
+	@SuppressWarnings("unused")
+	private static boolean isLetter(int type) {
 		return type <= Character.MODIFIER_LETTER && type >= Character.UPPERCASE_LETTER;
 	}
 }

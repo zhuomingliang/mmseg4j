@@ -1,6 +1,5 @@
 package com.chenlb.mmseg4j;
 
-import com.chenlb.mmseg4j.Chunk.Word;
 
 /**
  * 正向最大匹配的分词方式.
@@ -19,20 +18,6 @@ public class SimpleSeg extends Seg{
 		for(int k=0; k<3&&!sen.isFinish(); k++) {
 			int offset = sen.getOffset();
 			int maxLen = 0;
-			/* //最长开始找
-			int[] maxAvailableLen = {0};
-			CharNode[] cns = new CharNode[1];
-			for(int len : getLens(cns, 0, chs, offset, maxAvailableLen, 0)) {
-				if(len > maxAvailableLen[0]) {	//len不合格
-					continue;
-				}
-				int idx = search(cns[0], chs, offset, len);
-				if(idx > -1) {
-					maxLen = len;
-					break;
-				}
-				
-			}*/
 
 			//有了 key tree 的支持可以从头开始 max match
 			maxLen = dic.maxMatch(chs, offset);

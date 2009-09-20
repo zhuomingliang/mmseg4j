@@ -77,9 +77,9 @@ public class MMSegTokenizerFactory extends BaseTokenizerFactory implements Resou
 				f = new File(dicPath);
 			}
 			log.info("dic load... in="+dicPath);
-			dic = new Dictionary(f);
+			dic = Dictionary.getInstance(f);
 		} else {
-			dic = new Dictionary();
+			dic = Dictionary.getInstance();
 		}
 		
 	}

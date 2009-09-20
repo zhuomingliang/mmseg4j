@@ -1,5 +1,6 @@
 package com.chenlb.mmseg4j;
 
+
 /**
  * 它是MMSeg分词算法中一个关键的概念。Chunk中包含依据上下文分出的一组词和相关的属性，包括长度(Length)、平均长度(Average Length)、标准差的平方(Variance)和自由语素度(Degree Of Morphemic Freedom)。
  * 
@@ -75,8 +76,8 @@ public class Chunk {
 		if(sumDegree < 0) {
 			int sum = 0;
 			for(Word word : words) {
-				if(word != null && word.degree > -1) {
-					sum += word.degree;
+				if(word != null && word.getDegree() > -1) {
+					sum += word.getDegree();
 				}
 			}
 			sumDegree = sum;
@@ -105,73 +106,12 @@ public class Chunk {
 		return sb.toString();
 	}
 
-	public static class Word {
-		int degree = -1;
-		int startOffset;
-		
-		char[] sen;
-		int offset;
-		int len;
-		
-		/**
-		 * @param startOffset word 在整个文本中的偏移位置
-		 */
-		public Word(char[] word, int startOffset) {
-			super();
-			this.sen = word;
-			this.startOffset = startOffset;
-			offset = 0;
-			len = word.length;
-		}
-		
-		/**
-		 * @param startOffset sen 在整个文本中的偏移位置
-		 * @param offset 词在 sen 的偏移位置
-		 * @param len 词长
-		 */
-		public Word(char[] sen, int startOffset, int offset, int len) {
-			super();
-			this.sen = sen;
-			this.startOffset = startOffset;
-			this.offset = offset;
-			this.len = len;
-		}
-
-		public String getString() {
-			return new String(getSen(), getWordOffset(), getLength());
-		}
-		
-		public String toString() {
-			return getString();
-		}
-		
-		public int getWordOffset() {
-			return offset;
-		}
-		
-		public int getLength() {
-			return len;
-		}
-
-		public char[] getSen() {
-			return sen;
-		}
-		
-		public int getStartOffset() {
-			return startOffset+offset;
-		}
-		public int getEndOffset() {
-			return getStartOffset() + getLength();
-		}
-		public int getDegree() {
-			return degree;
-		}
-		public void setDegree(int degree) {
-			this.degree = degree;
-		}
-	}
-
 	public Word[] getWords() {
 		return words;
+	}
+	
+	public void setWords(Word[] words) {
+		this.words = words;
+		count = words.length;
 	}
 }

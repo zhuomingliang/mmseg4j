@@ -18,16 +18,10 @@ public class PerformanceAnalyzer {
 
 	private File path;
 	private Analyzer analyzer;
-	
-	public PerformanceAnalyzer(Analyzer analyzer) {
-		super();
-		path = new File("txt");
-		this.analyzer = analyzer;
-	}
 
 	public PerformanceAnalyzer(File path, Analyzer analyzer) {
-		this(analyzer);
 		this.path = path;
+		this.analyzer = analyzer;
 	}
 
 	public void run(String outputChipName, int n) throws IOException {
@@ -58,7 +52,7 @@ public class PerformanceAnalyzer {
 				bw.close();
 			}
 		}
-		System.out.println("size="+(size/1024)+"kb, use "+time+"ms, speed="+speed(size, time)+"kb/s");
+		System.out.println("===avg=== size="+(size/1024)+"kb, use "+time+"ms, speed="+speed(size, time)+"kb/s");
 	}
 	
 	/**
@@ -69,9 +63,9 @@ public class PerformanceAnalyzer {
 	 */
 	public static void main(String[] args) throws Exception {
 		int n = 1;
-		if(args.length < 1) {
-			usage();
-			return;
+		String txtPath = "txt";
+		if(args.length > 0) {
+			txtPath = args[0];
 		}
 		Properties analyzers = new Properties();
 		analyzers.load(new FileInputStream(new File("analyzer.properties")));
@@ -93,7 +87,7 @@ public class PerformanceAnalyzer {
 				
 			}
 		}
-		File path = new File(args[0]);
+		File path = new File(txtPath);
 		System.out.println("analyzer="+analyzer.getClass().getName());
 		PerformanceAnalyzer pa = new PerformanceAnalyzer(path, analyzer);
 		pa.run(mode, n);
@@ -101,8 +95,8 @@ public class PerformanceAnalyzer {
 
 	private static void usage() {
 		System.out.println("Usage:");
-		System.out.println("\t-Dmode=simple, defalut is complex");
 		System.out.println("\t-Danalyzer=paoding, defalut is mmseg4j");
+		System.out.println("\t-Dfile.encoding=gbk, txt file encoding defalut is os");
 		System.out.println("\tPerformance <txt path> - is a directory that contain *.txt");
 	}
 	
