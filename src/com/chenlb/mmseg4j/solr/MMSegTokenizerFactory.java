@@ -6,7 +6,7 @@ import java.io.Reader;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
 import org.apache.solr.analysis.BaseTokenizerFactory;
 import org.apache.solr.common.ResourceLoader;
 import org.apache.solr.core.SolrResourceLoader;
@@ -44,7 +44,7 @@ public class MMSegTokenizerFactory extends BaseTokenizerFactory implements Resou
 		return seg;
 	}
 	
-	public TokenStream create(Reader input) {
+	public Tokenizer create(Reader input) {
 		MMSegTokenizer tokenizer = tokenizerLocal.get();
 		if(tokenizer == null) {
 			tokenizer = newTokenizer(input);

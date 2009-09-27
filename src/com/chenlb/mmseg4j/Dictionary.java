@@ -300,6 +300,7 @@ public class Dictionary {
 					log.info("has some words file change! try reload ...");
 				}
 
+				//maybe OutOfMemoryError
 				reload();	//加载词库文件
 			}
 		}

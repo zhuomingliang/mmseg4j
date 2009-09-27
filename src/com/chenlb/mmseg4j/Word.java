@@ -37,6 +37,9 @@ public class Word {
 		len = word.length;
 	}
 	
+	/**
+	 * @param startOffset word 在整个文本中的偏移位置
+	 */
 	public Word(char[] word, int startOffset, String wordType) {
 		this(word, startOffset);
 		this.type = wordType;

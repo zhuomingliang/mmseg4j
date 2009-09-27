@@ -8,8 +8,9 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 /**
- * Reader 流的分词(有字母,数字等), 析出中文(其实是 CJK)成句子 {@link Sentence} 再对 mmseg 算法分词.
+ * Reader 流的分词(有字母,数字等), 析出中文(其实是 CJK)成句子 {@link Sentence} 再对 mmseg 算法分词.<br/>
  * 
+ * 非线程安全
  * @author chenlb 2009-9-20下午10:41:41
  */
 public class MMSeg {
@@ -19,7 +20,7 @@ public class MMSeg {
 	
 	private StringBuilder bufSentence = new StringBuilder(256);
 	private Sentence currentSentence;
-	private Queue<Word> bufWord;
+	private Queue<Word> bufWord;	// word 缓存, 因为有 chunk 分析三个以上.
 	
 	public MMSeg(Reader input, Seg seg) {
 		this.seg = seg;
@@ -34,7 +35,7 @@ public class MMSeg {
 		currentSentence = null;
 		bufWord = new LinkedList<Word>();
 		bufSentence.setLength(0);
-		readedIdx = 0;
+		readedIdx = -1;
 	}
 	
 	private int readNext() throws IOException {
@@ -71,9 +72,13 @@ public class MMSeg {
 					 * 3. 0x3b1-0x3c9 -> α-ω	//希腊小写
 					 */
 					data = toAscii(data);
-					bufSentence.appendCodePoint(data);
-					wordType = Word.TYPE_LETTER;
 					NationLetter nl = getNation(data);
+					if(nl == NationLetter.UNKNOW) {
+						read = true;
+						break;
+					}
+					wordType = Word.TYPE_LETTER;
+					bufSentence.appendCodePoint(data);
 					switch(nl) {
 					case EN:
 						//字母后面的数字,如: VH049PA
@@ -82,6 +87,8 @@ public class MMSeg {
 						if(rcad.hasDigit()) {
 							wordType = Word.TYPE_LETTER_OR_DIGIT;
 						}
+						//only english
+						//readChars(bufSentence, new ReadCharByAscii());
 						break;
 					case RA:
 						readChars(bufSentence, new ReadCharByRussia());
@@ -100,7 +107,6 @@ public class MMSeg {
 					 * 1. 0x3041-0x30f6 -> ぁ-ヶ	//日文(平|片)假名
 					 * 2. 0x3105-0x3129 -> ㄅ-ㄩ	//注意符号
 					 */
-
 					bufSentence.appendCodePoint(data);
 					readChars(bufSentence, new ReadCharByType(Character.OTHER_LETTER));
 
@@ -116,7 +122,7 @@ public class MMSeg {
 					int d = readNext();
 					if(d > -1) {
 						if(seg.isUnit(d)) {	//单位,如时间
-							bufWord.add(createWord(bufSentence, Word.TYPE_DIGIT));	//先把数字添加(独立)
+							bufWord.add(createWord(bufSentence, startIdx(bufSentence)-1, Word.TYPE_DIGIT));	//先把数字添加(独立)
 
 							bufSentence.setLength(0);
 
@@ -141,7 +147,7 @@ public class MMSeg {
 					bufSentence.appendCodePoint(data);
 					readChars(bufSentence, new ReadCharByType(Character.LETTER_NUMBER));
 
-					int startIdx = readedIdx - bufSentence.length();
+					int startIdx = startIdx(bufSentence);
 					for(int i=0; i<bufSentence.length(); i++) {
 						bufWord.add(new Word(new char[] {bufSentence.charAt(i)}, startIdx++, Word.TYPE_LETTER_NUMBER));
 					}
@@ -160,7 +166,7 @@ public class MMSeg {
 				default :
 					//其它认为无效字符
 					read = true;
-				}
+				}//switch
 			}
 				
 			// 中文分词
@@ -208,8 +214,9 @@ public class MMSeg {
 		int num = 0;
 		int data = -1;
 		while((data = readNext()) != -1) {
-			if(readChar.isRead(data)) {
-				bufSentence.appendCodePoint(readChar.transform(data));
+			int d = readChar.transform(data);
+			if(readChar.isRead(d)) {
+				bufSentence.appendCodePoint(d);
 				num++;
 			} else {	//不是数字回压,要下一步操作
 				pushBack(data);
@@ -238,11 +245,20 @@ public class MMSeg {
 
 		private boolean hasDigit = false;
 		boolean isRead(int codePoint) {
-			hasDigit = super.isRead(codePoint);
-			return isAsciiLetter(codePoint) || hasDigit;
+			boolean isRead = super.isRead(codePoint);
+			hasDigit |= isRead;
+			return isAsciiLetter(codePoint) || isRead;
 		}
 		boolean hasDigit() {
 			return hasDigit;
+		}
+	}
+	
+	/**读取字母*/
+	@SuppressWarnings("unused")
+	private static class ReadCharByAscii extends ReadCharDigit {
+		boolean isRead(int codePoint) {
+			return isAsciiLetter(codePoint);
 		}
 	}
 	
@@ -256,7 +272,7 @@ public class MMSeg {
 	}
 	
 	/**读取希腊 */
-	private static class ReadCharByGreece extends ReadCharByAsciiOrDigit {
+	private static class ReadCharByGreece extends ReadCharDigit {
 
 		boolean isRead(int codePoint) {
 			return isGreeceLetter(codePoint);
@@ -282,13 +298,17 @@ public class MMSeg {
 		return new Word(toChars(bufSentence), startIdx(bufSentence), type);
 	}
 	
+	private Word createWord(StringBuilder bufSentence, int startIdx, String type) {
+		return new Word(toChars(bufSentence), startIdx, type);
+	}
+	
 	private Sentence createSentence(StringBuilder bufSentence) {
 		return new Sentence(toChars(bufSentence), startIdx(bufSentence));
 	}
 	
 	/**取得 bufSentence 的第一个字符在整个文本中的位置*/
 	private int startIdx(StringBuilder bufSentence) {
-		return readedIdx - bufSentence.length();
+		return readedIdx - bufSentence.length() + 1;
 	}
 	
 	/**从 StringBuilder 里复制出 char[] */
