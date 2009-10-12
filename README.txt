@@ -63,6 +63,23 @@ java -cp .;mmseg4j-1.6.jar com.chenlb.mmseg4j.example.MaxWord 这里是字符串
  * data/words.dic 是词库文件，一行一词，当然你也可以使用自己的，1.5版本使用 sogou 词库，1.0的版本是用 rmmseg 带的词库。
  * data/wordsxxx.dic 1.6版支持多个词库文件，data 目录（或你定义的目录）下读到"words"前缀且".dic"为后缀的文件。如：data/words-my.dic。
 
+9、MMseg4jHandler:
+添加 MMseg4jHandler 类，可以在solr中用url的方式来控制加载检测词库。参数：
+ * dicPath 是指定词库的目录，特性与MMSegTokenizerFactory中的dicPath一样（相对目录是，是相对 solr.home）。
+ * check 是指是否检测词库，其值是true 或 on。
+ * reload 是否尝试加载词库，其值是 true 或 on。此值为 true，会忽视 check 参数。
+ 
+solrconfig.xml：
+
+	<requestHandler name="/mmseg4j" class="com.chenlb.mmseg4j.solr.MMseg4jHandler" >
+		<lst name="defaults">
+			<str name="dicPath">dic</str>
+		</lst>
+	</requestHandler>
+
+此功能可以让外置程序做相关的控制，如：尝试加载词库，然后外置程序决定是否重做索引。
+
+
 在 solr 1.3 与 lucene 2.4 测试过，官方博客 http://blog.chenlb.com/topics/category/mmseg4j ， 如果发现问题或bug与我联系 chenlb2008@gmail.com 。
 
 1.7.2 与 1.6.2 开始核心的程序与 lucene 和 solr 扩展分开打包，方便兼容低版本的 lucene，同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)。

@@ -341,17 +341,33 @@ public class Dictionary {
 	}
 	
 	/**
-	 * 全新加载词库
+	 * 全新加载词库，没有成功加载会回滚。
+	 * @return 是否成功加载
 	 */
-	public synchronized void reload() {
+	public synchronized boolean reload() {
+		Map<File, Long> oldWordsLastTime = new HashMap<File, Long>(wordsLastTime);
+		Map<Character, CharNode> oldDict = dict;
+		Map<Character, Object> oldUnit = unit;
+		
 		try {
 			wordsLastTime.clear();
 			dict = loadDic(dicPath);
 			unit = loadUnit(dicPath);
 			lastLoadTime = System.currentTimeMillis();
 		} catch (IOException e) {
-			throw new RuntimeException("reload dic error!", e);
+			//rollback
+			wordsLastTime.putAll(oldWordsLastTime);
+			dict = oldDict;
+			unit = oldUnit;
+			
+			if(log.isLoggable(Level.WARNING)) {
+				log.log(Level.WARNING, "reload dic error! dic="+dicPath+", and rollbacked.", e);
+			}
+			
+			return false;
+			//throw new RuntimeException("reload dic error!", e);
 		}
+		return true;
 	}
 	
 	/**
