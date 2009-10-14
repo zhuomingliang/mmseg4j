@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.LowerCaseFilter;
-import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 
 import com.chenlb.mmseg4j.Dictionary;
@@ -56,31 +54,28 @@ public class MMSegAnalyzer extends Analyzer {
 		return new MaxWordSeg(dic);
 	}
 	
+	public Dictionary getDict() {
+		return dic;
+	}
+	
 	@Override
 	public TokenStream reusableTokenStream(String fieldName, Reader reader)
 			throws IOException {
 		
-		SavedStreams streams = (SavedStreams) getPreviousTokenStream();
-		if(streams == null) {
-			streams = new SavedStreams();
-			streams.mmsegTokenizer = new MMSegTokenizer(newSeg(), reader);
-			streams.tokenFilter = new LowerCaseFilter(streams.mmsegTokenizer);
-			setPreviousTokenStream(streams);
+		MMSegTokenizer mmsegTokenizer = (MMSegTokenizer) getPreviousTokenStream();
+		if(mmsegTokenizer == null) {
+			mmsegTokenizer = new MMSegTokenizer(newSeg(), reader);
+			setPreviousTokenStream(mmsegTokenizer);	//保存实例
 		} else {
-			streams.mmsegTokenizer.reset(reader);
+			mmsegTokenizer.reset(reader);
 		}
 		
-		return streams.tokenFilter;
+		return mmsegTokenizer;
 	}
 
 	@Override
 	public TokenStream tokenStream(String fieldName, Reader reader) {
 		TokenStream ts = new MMSegTokenizer(newSeg(), reader);
-		return ts;	//new LowerCaseFilter(ts);
-	}
-	
-	private static final class SavedStreams {
-		MMSegTokenizer mmsegTokenizer;
-		TokenFilter tokenFilter;
+		return ts;
 	}
 }

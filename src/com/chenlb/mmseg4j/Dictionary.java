@@ -12,9 +12,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -23,7 +20,7 @@ import java.util.logging.Logger;
 /**
  * 词典类. 词库目录单例模式.<br/>
  * 保存单字与其频率,还有词库.<br/>
- * 自动词典文件修改检测并加载(不是默认行为,需要dicPath/mmseg4j.properties设定检测的时间间隔).
+ * 有检测词典变更的接口，外部程序可以使用 {@link #wordsFileIsChange()} 和 {@link #reload()} 来完成检测与加载的工作.
  * 
  * @author chenlb 2009-2-20 下午11:34:29
  */
@@ -35,11 +32,8 @@ public class Dictionary {
 	private Map<Character, CharNode> dict;
 	private Map<Character, Object> unit;	//单个字的单位
 	
-	private int wordsCheckInterval = 0;	//默认不使用检测功能.
 	/** 记录 word 文件的最后修改时间 */
 	private Map<File, Long> wordsLastTime = null;
-	/** 词典检测加载线程 */
-	private Timer wordCheckTimer = null;
 	private long lastLoadTime = 0;
 
 	/** 不要直接使用, 通过 {@link #getDefalutPath()} 使用*/
@@ -92,10 +86,6 @@ public class Dictionary {
 	 * 销毁, 释放资源. 此后此对像不再可用.
 	 */
 	void destroy() {
-		if(wordCheckTimer != null) {
-			wordCheckTimer.cancel();
-		}
-		
 		clear(dicPath);
 		
 		dicPath = null;
@@ -124,17 +114,12 @@ public class Dictionary {
 	 */
 	private Dictionary(File path) {
 		init(path);
-		if(wordsCheckInterval > 0) {
-			wordCheckTimer = new Timer("word-checker", true);
-			wordCheckTimer.schedule(new WordCheckTask(), wordsCheckInterval, wordsCheckInterval);	//启动词典文件变更线程
-		}
 	}
 	
 	private void init(File path) {
 		dicPath = path;
 		wordsLastTime = new HashMap<File, Long>();
 		
-		loadConf();
 		reload();	//加载词典
 		
 	}
@@ -286,26 +271,6 @@ public class Dictionary {
 		void row(String line, int n);
 	}
 	
-	private class WordCheckTask extends TimerTask {
-		
-		public WordCheckTask() {
-			if(log.isLoggable(Level.INFO)) {
-				log.info("words file checker["+dicPath+"] started.");
-			}
-		}
-
-		public void run() {
-			if(wordsFileIsChange()) {
-				if(log.isLoggable(Level.INFO)) {
-					log.info("has some words file change! try reload ...");
-				}
-
-				//maybe OutOfMemoryError
-				reload();	//加载词库文件
-			}
-		}
-	}; 
-	
 	/**
 	 * 把 wordsFile 文件的最后更新时间加记录下来.
 	 * @param wordsFile 非 null
@@ -368,34 +333,6 @@ public class Dictionary {
 			//throw new RuntimeException("reload dic error!", e);
 		}
 		return true;
-	}
-	
-	/**
-	 * load config file mmseg4j.properties in dicPath
-	 */
-	private void loadConf() {
-		//try load config file mmseg4j.properties in path
-		File confF = new File(dicPath, "mmseg4j.properties");
-		if(confF.isFile() && confF.canRead()) {
-			Properties conf = new Properties();
-			try {
-				if(log.isLoggable(Level.INFO)) {
-					log.info("try load conf from mmseg4j.properties in "+dicPath);
-				}
-				conf.load(new FileInputStream(confF));
-				String intervalStr = conf.getProperty("words-check-interval");
-				if(intervalStr != null) {
-					int interval = Integer.parseInt(intervalStr);
-					if(interval > 0) {
-						wordsCheckInterval = interval;
-					}
-				}
-			} catch (Exception e) {
-				if(log.isLoggable(Level.WARNING)) {
-					log.log(Level.WARNING, "error, load conf file mmseg4j.properties in "+dicPath, e);
-				}
-			}
-		}
 	}
 	
 	/**
