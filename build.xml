@@ -60,7 +60,7 @@
 		<copy file="data/units.dic" todir="${build.java.dir}/data" preservelastmodified="true" />
 	</target>
 
-	<target name="build" depends="build.java,jar,jar.core,jar.analysis,jar.solr" />
+	<target name="build" depends="build.java,jar,jar-with-dic,jar.core,jar.core-with-dic,jar.analysis,jar.solr" />
 	<target name="rebuild" depends="clean-all,build" />
 	<target name="jar" depends="build.java">
 		<jar destfile="${build.dir}/${project.name}-all-${version}.jar" basedir="${build.java.dir}" >
@@ -68,6 +68,15 @@
 				<attribute name="Main-Class" value="com.chenlb.mmseg4j.example.Complex"/>
 			</manifest>
 		</jar>
+	</target>
+	<target name="jar-with-dic" depends="build.java">
+		<copy file="data/words.dic" todir="${build.java.dir}/data" preservelastmodified="true" />
+		<jar destfile="${build.dir}/${project.name}-all-${version}-with-dic.jar" basedir="${build.java.dir}" >
+			<manifest>
+				<attribute name="Main-Class" value="com.chenlb.mmseg4j.example.Complex"/>
+			</manifest>
+		</jar>
+		<delete file="${build.java.dir}/data/words.dic" />
 	</target>
 	<target name="jar.core" depends="build.java">
 		<jar destfile="${build.dir}/${project.name}-core-${version}.jar" basedir="${build.java.dir}" >
@@ -77,7 +86,18 @@
 			<exclude name="**/analysis/**"/>
 			<exclude name="**/solr/**"/>
 		</jar>
-	</target>	
+	</target>
+	<target name="jar.core-with-dic" depends="build.java">
+		<copy file="data/words.dic" todir="${build.java.dir}/data" preservelastmodified="true" />
+		<jar destfile="${build.dir}/${project.name}-core-${version}-with-dic.jar" basedir="${build.java.dir}" >
+			<manifest>
+				<attribute name="Main-Class" value="com.chenlb.mmseg4j.example.Complex"/>
+			</manifest>
+			<exclude name="**/analysis/**"/>
+			<exclude name="**/solr/**"/>
+		</jar>
+		<delete file="${build.java.dir}/data/words.dic" />
+	</target>
 	<target name="jar.analysis" depends="build.java">
 		<jar destfile="${build.dir}/${project.name}-analysis-${version}.jar" basedir="${build.java.dir}" >
 			<include name="**/analysis/**"/>
@@ -94,6 +114,7 @@
 		<copy todir="temp-zip/dist" preservelastmodified="true">
 			<fileset dir="${build.dir}">
 				<include name="${project.name}-*-${version}.jar"/>
+				<include name="${project.name}-core-${version}-with-dic.jar"/>
 				<exclude name="${project.name}-all-${version}.jar"/>
 			</fileset>
 		<!--
@@ -102,9 +123,15 @@
 			</fileset>
 		-->
 		</copy>
+		<copy todir="temp-zip/data" preservelastmodified="true">
+			<fileset dir="data">
+				<include name="words.dic"/>
+			</fileset>
+		</copy>
 		<copy todir="temp-zip" preservelastmodified="true">
 			<fileset dir="${build.dir}">
 				<include name="${project.name}-all-${version}.jar"/>
+				<include name="${project.name}-all-${version}-with-dic.jar"/>
 			</fileset>
 			<fileset dir="">
 				<include name="*.txt"/>

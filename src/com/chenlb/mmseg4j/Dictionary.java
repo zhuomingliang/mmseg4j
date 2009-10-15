@@ -29,8 +29,8 @@ public class Dictionary {
 	private static final Logger log = Logger.getLogger(Dictionary.class.getName());
 	
 	private File dicPath;	//词库目录
-	private Map<Character, CharNode> dict;
-	private Map<Character, Object> unit;	//单个字的单位
+	private volatile Map<Character, CharNode> dict;
+	private volatile Map<Character, Object> unit;	//单个字的单位
 	
 	/** 记录 word 文件的最后修改时间 */
 	private Map<File, Long> wordsLastTime = null;
@@ -56,7 +56,6 @@ public class Dictionary {
 	 * <li>从user.dir/data目录</li>
 	 * </ol>
 	 * @see #getDefalutPath()
-	 * @throws RuntimeException 没有找到默认目录
 	 */
 	public static Dictionary getInstance() {
 		File path = getDefalutPath();
@@ -121,7 +120,6 @@ public class Dictionary {
 		wordsLastTime = new HashMap<File, Long>();
 		
 		reload();	//加载词典
-		
 	}
 	
 	private static long now() {
@@ -180,29 +178,36 @@ public class Dictionary {
 		});
 		log.info("chars loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+charsFile);
 		
-		for(File wordsFile : listWordsFiles()) {//只要 wordsXXX.dic的文件
-			s = now();
-			lineNum = load(new FileInputStream(wordsFile), new FileLoading() {//正常的词库
-
-				public void row(String line, int n) {
-					if(line.length() < 2) {
-						return;
-					}
-					CharNode cn = dic.get(line.charAt(0));
-					if(cn == null) {
-						cn = new CharNode();
-						dic.put(line.charAt(0), cn);
-					}
-					cn.addWordTail(tail(line));
-				}
-				
-			});
-			addLastTime(wordsFile);	//检测是否修改用
-			log.info("words loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+wordsFile);
+		//try load words.dic in jar
+		InputStream wordsDicIn = this.getClass().getResourceAsStream("/data/words.dic");
+		if(wordsDicIn != null) {
+			File wordsDic = new File(this.getClass().getResource("/data/words.dic").getFile());
+			loadWord(wordsDicIn, dic, wordsDic);
 		}
 		
-		log.info("load dic use time="+(now()-ss)+"ms");
+		File[] words = listWordsFiles();	//只要 wordsXXX.dic的文件
+		if(words != null) {	//扩展词库目录
+			for(File wordsFile : words) {
+				loadWord(new FileInputStream(wordsFile), dic, wordsFile);
+				
+				addLastTime(wordsFile);	//用于检测是否修改
+			}
+		}
+		
+		log.info("load all dic use time="+(now()-ss)+"ms");
 		return dic;
+	}
+	
+	/**
+	 * @param is 词库文件流
+	 * @param dic 加载的词保存在结构中
+	 * @param wordsFile	日志用
+	 * @throws IOException from {@link #load(InputStream, FileLoading)}
+	 */
+	private void loadWord(InputStream is, Map<Character, CharNode> dic, File wordsFile) throws IOException {
+		long s = now();
+		int lineNum = load(is, new WordsFileLoading(dic)); //正常的词库
+		log.info("words loaded time="+(now()-s)+"ms, line="+lineNum+", on file="+wordsFile);
 	}
 	
 	private Map<Character, Object> loadUnit(File path) throws IOException {
@@ -232,6 +237,34 @@ public class Dictionary {
 
 		return unit;
 	}
+
+	/**
+	 * 加载 wordsXXX.dic 文件类。
+	 * 
+	 * @author chenlb 2009-10-15 下午02:12:55
+	 */
+	private static class WordsFileLoading implements FileLoading {
+		final Map<Character, CharNode> dic;
+
+		/**
+		 * @param dic 加载的词，保存在此结构中。
+		 */
+		public WordsFileLoading(Map<Character, CharNode> dic) {
+			this.dic = dic;
+		}
+		
+		public void row(String line, int n) {
+			if(line.length() < 2) {
+				return;
+			}
+			CharNode cn = dic.get(line.charAt(0));
+			if(cn == null) {
+				cn = new CharNode();
+				dic.put(line.charAt(0), cn);
+			}
+			cn.addWordTail(tail(line));
+		}
+	}
 	
 	/**
 	 * 加载词文件的模板
@@ -256,7 +289,7 @@ public class Dictionary {
 	 * 取得 str 除去第一个char的部分
 	 * @author chenlb 2009-3-3 下午10:05:26
 	 */
-	private char[] tail(String str) {
+	private static char[] tail(String str) {
 		char[] cs = new char[str.length()-1];
 		str.getChars(1, str.length(), cs, 0);
 		return cs;
@@ -297,16 +330,20 @@ public class Dictionary {
 			}
 		}
 		//检查是否有新文件
-		for(File wordsFile : listWordsFiles()) {
-			if(!wordsLastTime.containsKey(wordsFile)) {	//有新词典文件
-				return true;
+		File[] words = listWordsFiles();
+		if(words != null) {
+			for(File wordsFile : words) {
+				if(!wordsLastTime.containsKey(wordsFile)) {	//有新词典文件
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 	
 	/**
-	 * 全新加载词库，没有成功加载会回滚。
+	 * 全新加载词库，没有成功加载会回滚。<P/>
+	 * 注意：重新加载时，务必有两倍的词库树结构的内存，默认词库是 50M/个 左右。否则抛出 OOM。
 	 * @return 是否成功加载
 	 */
 	public synchronized boolean reload() {
@@ -330,7 +367,6 @@ public class Dictionary {
 			}
 			
 			return false;
-			//throw new RuntimeException("reload dic error!", e);
 		}
 		return true;
 	}
@@ -389,7 +425,7 @@ public class Dictionary {
 	}
 	
 	/**
-	 * @throws RuntimeException 如果 defalut 不存在
+	 * 当 words.dic 是从 jar 里加载时, 可能 defalut 不存在
 	 */
 	public static File getDefalutPath() {
 		if(defalutPath == null) {
@@ -409,7 +445,7 @@ public class Dictionary {
 			
 			defalutPath = new File(defPath);
 			if(!defalutPath.exists()) {
-				throw new RuntimeException("defalut dic path="+defalutPath+" not exist");
+				log.warning("defalut dic path="+defalutPath+" not exist");
 			}
 		}
 		return defalutPath;
@@ -422,6 +458,9 @@ public class Dictionary {
 		return dict;
 	}
 	
+	/**
+	 * 注意：当 words.dic 是从 jar 里加载时，此时 File 可能是不存在的。
+	 */
 	public File getDicPath() {
 		return dicPath;
 	}
