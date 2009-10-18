@@ -1,19 +1,19 @@
----------1.8-dev 2009-10-14-----------
+---------1.8 2009-10-18-----------
 new:
 	1、有检测词典变更的接口，外部程序可以使用 wordsFileIsChange() 和 reload() 来完成检测与加载的工作. (内部不实现自动检测与加载，留给外部程序去做。)
 	2、添加 MMseg4jHandler 类，可以在solr中用url的方式来控制加载检测词库。
 	3、增加 CutLetterDigitFilter过虑器，切分“字母和数”混在一起的过虑器。比如：mb991ch 切为 "mb 991 ch"。
 
 changes:
-	1、默认在 classpath 中加载 data 目录（词库目录），找不到再找 user.dir/data 目录。
+	1、默认在 classpath 中加载 data 目录（词库目录），找不到再找 user.dir/data 目录。但是优先 mmseg.dic.path 系统属性指定的。
 	2、去除 sogou 高频无词性的词，合并 rmmseg 提供的词（是 mmseg4j 1.0 使用的词库），共计（14W 多词）。
 	3、Dictionary 改为词库目录缓存单例模式。
 	4、数字或英文开头的数字或英文不独立分出。如 MB991CH/A 分为 mb991ch a，cq40-519tx 分为 CQ40 519TX
 	5、Chunk 的内部类 Word 变成独立的类，并加一 type 给 Token 的 type 用。
 	6、内置支持小写，不需要 LowerCaseFilter 了。MMSegAnalyzer 去除了小写过虑。
 	7、MMSegAnalyzer 增加取得 Dictionary 的方法，方便使用检测与加载词库。
-	8、支持 solr 1.3/1.4、lucene 2.4/2.9
-	9、尝试加载 jar 里的 words.dic，并构建含有 words.dic 的 jar。
+	8、支持 solr 1.3/1.4、lucene 2.3/2.4/2.9
+	9、尝试加载 jar 里的 words.dic，并构建含有 words.dic 的 jar(mmseg4j-*-with-dic.jar)。
 
 bugs:
 	1、Dictionary 添加 finalize 方法。修正 tomcat reload 时 OOM 的 bug: http://code.google.com/p/mmseg4j/issues/detail?id=4

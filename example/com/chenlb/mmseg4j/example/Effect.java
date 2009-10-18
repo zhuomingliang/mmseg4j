@@ -59,7 +59,7 @@ public class Effect {
 					bw.append(line).append("\r\n");
 					TokenStream ts = analyzer.tokenStream("text", new StringReader(line));
 					for(Token t= new Token(); (t=ts.next(t)) !=null;) {
-						bw.append(new String(t.term())).append(" | ");
+						bw.append(new String(t.termBuffer(), 0, t.termLength())).append(" | ");
 					}
 					bw.append("\r\n");
 				}

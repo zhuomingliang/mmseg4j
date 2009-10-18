@@ -19,6 +19,7 @@
  * 1.5版的分词速度simple算法是 1100kb/s左右、complex算法是 700kb/s左右，（测试机：AMD athlon 64 2800+ 1G内存 xp）。
  * 1.6版在complex基础上实现了最多分词(max-word)。“很好听” -> "很好|好听"; “中华人民共和国” -> "中华|华人|共和|国"; “中国人民银行” -> "中国|人民|银行"。
  * 1.7-beta 版, 目前 complex 1200kb/s左右, simple 1900kb/s左右, 但内存开销了50M左右. 上几个版都是在10M左右.
+
 mmseg4j实现的功能详情请看：http://mmseg4j.googlecode.com/svn/trunk/CHANGES.txt
 
 3、在 com.chenlb.mmseg4j.example包里的类示例了三种分词效果。
@@ -45,11 +46,11 @@ mmseg4j实现的功能详情请看：http://mmseg4j.googlecode.com/svn/trunk/CHA
     
 dicPath 指定词库位置（每个MMSegTokenizerFactory可以指定不同的目录，当是相对目录时，是相对 solr.home 的目录），mode 指定分词模式（simple|complex|max-word，默认是max-word）。
 
-6、运行，词典用mmseg.dic.path属性指定或在当前目录下的data目录，默认是 ./data 目录。
+6、运行，词典用mmseg.dic.path属性指定、在classpath 目录下或在当前目录下的data目录，默认是 classpath/data 目录。如果使用 mmseg4j-*-with-dic.jar 包可以不指定词库目录（如果指定也可以，它们也可以被加载）。
 
-java -Dmmseg.dic.path=./data -jar mmseg4j-1.6.jar 这里是字符串。
+java -jar mmseg4j-core-1.8-with-dic.jar 这里是字符串。
 
-java -cp .;mmseg4j-1.6.jar com.chenlb.mmseg4j.example.Simple 这里是字符串。
+java -cp .;mmseg4j-1.6.jar -Dmmseg.dic.path=./other-dic com.chenlb.mmseg4j.example.Simple 这里是字符串。
 
 java -cp .;mmseg4j-1.6.jar com.chenlb.mmseg4j.example.MaxWord 这里是字符串
 
@@ -80,8 +81,15 @@ solrconfig.xml：
 此功能可以让外置程序做相关的控制，如：尝试加载词库，然后外置程序决定是否重做索引。
 
 
-在 solr 1.3 与 lucene 2.4 测试过，官方博客 http://blog.chenlb.com/topics/category/mmseg4j ， 如果发现问题或bug与我联系 chenlb2008@gmail.com 。
+在 solr 1.3/1.4 与 lucene 2.3/2.4/2.9 测试过，官方博客 http://blog.chenlb.com/category/mmseg4j ， 如果发现问题或bug与我联系 chenlb2008#gmail.com 。
 
-1.7.2 与 1.6.2 开始核心的程序与 lucene 和 solr 扩展分开打包，方便兼容低版本的 lucene，同时给出低版本的 lucene 扩展(lucene 1.9 到 2.2; lucene 2.3)。
+1.7.2 与 1.6.2 开始核心的程序与 lucene 和 solr 扩展分开打包，方便兼容低版本的 lucene，同时给出低版本（<= lucene 2.2）的 lucene 扩展请仿照 MMSegTokenizer.java。
 
 可以在 http://code.google.com/p/mmseg4j/issues/list 提出希望 mmseg4j 有的功能。 
+
+历史版本：
+
+ * 1.0.2 http://mmseg4j.googlecode.com/svn/branches/mmseg4j-1.0/
+ * 1.5   http://mmseg4j.googlecode.com/svn/branches/mmseg4j-1.5/
+ * 1.6.2 http://mmseg4j.googlecode.com/svn/branches/mmseg4j-1.6/
+ * 1.7.3 http://mmseg4j.googlecode.com/svn/branches/mmseg4j-1.7/

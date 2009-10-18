@@ -123,11 +123,7 @@
 			</fileset>
 		-->
 		</copy>
-		<copy todir="temp-zip/data" preservelastmodified="true">
-			<fileset dir="data">
-				<include name="words.dic"/>
-			</fileset>
-		</copy>
+		
 		<copy todir="temp-zip" preservelastmodified="true">
 			<fileset dir="${build.dir}">
 				<include name="${project.name}-all-${version}.jar"/>
@@ -135,6 +131,11 @@
 			</fileset>
 			<fileset dir="">
 				<include name="*.txt"/>
+				<include name="src/**"/>
+				<include name="lib/**"/>
+				<include name="data/*.dic"/>
+				<include name="build.properties"/>
+				<include name="build.xml"/>
 			</fileset>
 		</copy>
 		<zip destfile="${build.dir}/${project.name}-${version}.zip" basedir="temp-zip">

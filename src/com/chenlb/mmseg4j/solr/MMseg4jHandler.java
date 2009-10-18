@@ -64,7 +64,7 @@ public class MMseg4jHandler extends RequestHandlerBase implements SolrCoreAware 
 			changed = dict.wordsFileIsChange();
 			result.add("changed", changed);
 		}
-		if(changed) {
+		if(changed && reload) {
 			reloaded = dict.reload();
 			result.add("reloaded", reloaded);
 		}

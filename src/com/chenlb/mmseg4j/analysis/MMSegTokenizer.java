@@ -28,7 +28,17 @@ public class MMSegTokenizer extends Tokenizer {
 		Token token = null;
 		Word word = mmSeg.next();
 		if(word != null) {
-			token = reusableToken.reinit(word.getSen(), word.getWordOffset(), word.getLength(), word.getStartOffset(), word.getEndOffset(), word.getType());
+			//lucene 2.3
+			reusableToken.clear();
+			reusableToken.setTermBuffer(word.getSen(), word.getWordOffset(), word.getLength());
+			reusableToken.setStartOffset(word.getStartOffset());
+			reusableToken.setEndOffset(word.getEndOffset());
+			reusableToken.setType(word.getType());
+			
+			token = reusableToken;
+			
+			//lucene 2.4
+			//token = reusableToken.reinit(word.getSen(), word.getWordOffset(), word.getLength(), word.getStartOffset(), word.getEndOffset(), word.getType());
 		}
 		
 		return token;
