@@ -39,8 +39,12 @@ public class MMSeg {
 	}
 	
 	private int readNext() throws IOException {
-		readedIdx++;
-		return Character.toLowerCase(reader.read());
+		int d = reader.read();
+		if(d > -1) {
+			readedIdx++;
+			d = Character.toLowerCase(d);
+		}
+		return d;
 	}
 	
 	private void pushBack(int data) throws IOException {

@@ -1,3 +1,6 @@
+---------1.8.1 2009-10-21-----------
+fixed bugs:
+	1、使用 Lucene highlight 抛出 InvalidTokenOffsetsException 或 StringIndexOutOfBoundsException。
 ---------1.8 2009-10-18-----------
 new:
 	1、有检测词典变更的接口，外部程序可以使用 wordsFileIsChange() 和 reload() 来完成检测与加载的工作. (内部不实现自动检测与加载，留给外部程序去做。)
