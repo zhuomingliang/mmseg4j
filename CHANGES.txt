@@ -1,3 +1,5 @@
+---------1.7.4-----------
+支持 solr 1.4
 ---------1.7.3-----------
 Dictionary 添加 finalize 方法。修正 tomcat reload 时 OOM 的 bug: http://code.google.com/p/mmseg4j/issues/detail?id=4
 MMSegTokenizer 在 lucene 2.4 编译的 在 lucene 2.9 中会报 java.lang.NoSuchFieldError: input。bug: http://code.google.com/p/mmseg4j/issues/detail?id=5
