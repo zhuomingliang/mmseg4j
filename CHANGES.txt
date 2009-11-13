@@ -1,3 +1,6 @@
+---------1.8.2 2009-11-13-----------
+fixed bugs:
+	1、使用 max-word 分词方式，依然出现 highlight 定位不准确。http://code.google.com/p/mmseg4j/issues/detail?id=9
 ---------1.8.1 2009-10-21-----------
 fixed bugs:
 	1、使用 Lucene highlight 抛出 InvalidTokenOffsetsException 或 StringIndexOutOfBoundsException。

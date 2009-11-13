@@ -21,12 +21,13 @@ public class MaxWordSeg extends ComplexSeg {
 			List<Word> cks = new ArrayList<Word>();
 			for(int i=0; i<chunk.getCount(); i++) {
 				Word word = chunk.words[i];
-				int senStartOffset = word.getStartOffset();
+				
 				if(word.getLength() < 3) {
 					cks.add(word);
 				} else {
 					char[] chs = word.getSen();
 					int offset = word.getWordOffset(), n = 0, wordEnd = word.getWordOffset()+word.getLength();
+					int senStartOffset = word.getStartOffset() - offset;	//sen 在文件中的位置
 					int end = -1;	//上一次找到的位置
 					for(; offset<wordEnd-1; offset++) {
 						int idx = search(chs, offset, 1);
