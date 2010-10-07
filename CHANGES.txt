@@ -1,3 +1,6 @@
+---------1.8.3 2010-10-07-----------
+1、用 ivy 管理 jar
+2、支持 lucene 2.9/3.0, solr 升级到 1.4
 ---------1.8.2 2009-11-13-----------
 fixed bugs:
 	1、使用 max-word 分词方式，依然出现 highlight 定位不准确。http://code.google.com/p/mmseg4j/issues/detail?id=9

@@ -9,6 +9,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -17,9 +18,9 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 
 import com.chenlb.mmseg4j.analysis.ComplexAnalyzer;
-import com.chenlb.mmseg4j.analysis.MaxWordAnalyzer;
 import com.chenlb.mmseg4j.analysis.SimpleAnalyzer;
 
 public class LuceneUseSimpleAnalyzerTest extends TestCase {
@@ -35,7 +36,7 @@ public class LuceneUseSimpleAnalyzerTest extends TestCase {
 		analyzer = new ComplexAnalyzer();
 		//analyzer = new MaxWordAnalyzer();
 		dir = new RAMDirectory();
-		IndexWriter iw = new IndexWriter(dir, analyzer);
+		IndexWriter iw = new IndexWriter(dir, analyzer, MaxFieldLength.UNLIMITED);
 		Document doc = new Document();
 		doc.add(new Field("txt", txt, Field.Store.YES, Field.Index.ANALYZED));
 		iw.addDocument(doc);
@@ -47,7 +48,7 @@ public class LuceneUseSimpleAnalyzerTest extends TestCase {
 	public void testSearch() {
 		try {
 			IndexSearcher searcher = new IndexSearcher(dir);
-			QueryParser qp = new QueryParser("txt", analyzer);
+			QueryParser qp = new QueryParser(Version.LUCENE_29, "txt", analyzer);
 			Query q = qp.parse("西伯利亚");	//2008年底
 			System.out.println(q);
 			TopDocs tds = searcher.search(q, 10);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="mmseg4j" default="build">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="mmseg4j" default="dist">
 
 	<property file="build.properties" />
 	<property name="project.name" value="${ant.project.name}" />
@@ -11,18 +11,44 @@
 	<property name="build.test.dir" value="build/classes/test" />
 	<property name="build.classes.dir" value="build/classes" />
 	<property name="extlib.dir" value="lib" />
+	
+	<property name="ivy.jar.dir" value="${basedir}/ivy" />
+	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
+
+	<property name="lib.dir" location="lib" />
+	
 	<!-- 定义类路径 -->
-	<path id="project.classpath">
-		<fileset dir="${extlib.dir}">
+	<path id="compile.class.path">
+		<fileset dir="${lib.dir}/compile">
 			<include name="*.jar" />
 		</fileset>
-		<pathelement location="${build.java.dir}" />
-		<pathelement location="${build.test.dir}" />
 	</path>
 
-	<target name="init">
+	<path id="java.class.path">
+		<dirset dir="${build.java}">
+			<include name="**" />
+		</dirset>
+	</path>
+	
+	<target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
+		<ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact]-[revision].[ext]" />
+	</target>
+
+	<target name="download-ivy" unless="skip.download">
+		<mkdir dir="${ivy.jar.dir}" />
+		<echo message="installing ivy..." />
+		<get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true" />
+	</target>
+
+	<target name="install-ivy" depends="download-ivy" description="--> install ivy">
+		<path id="ivy.lib.path">
+			<fileset dir="${ivy.jar.dir}" includes="*.jar" />
+		</path>
+		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path" />
+	</target>
+	
+	<target name="init" depends="resolve">
 		<mkdir dir="${build.java.dir}" />
-		<mkdir dir="${build.test.dir}" />
 	</target>
 
 	<target name="compile.java" depends="init">
@@ -30,23 +56,11 @@
 			debug="true" debuglevel="lines,source"
 			encoding="UTF-8" source="1.5" target="1.5">
 			<src path="${src.java.dir}" />
-			<classpath refid="project.classpath" />
-		</javac>
-	</target>
-	
-	<target name="compile.test" depends="compile.java">
-		<javac destdir="${build.test.dir}" encoding="UTF-8" source="1.5" target="1.5">
-			<src path="${src.test.dir}" />
-			<classpath refid="project.classpath" />
-			<classpath>
-				<fileset dir="${junit.lib}">
-					<include name="*.jar" />
-				</fileset>
-			</classpath>
+			<classpath refid="compile.class.path" />
 		</javac>
 	</target>
 
-	<target name="compile" depends="compile.java,compile.test">
+	<target name="compile" depends="compile.java">
 	</target>
 
 	<target name="build.java" depends="compile.java">
@@ -60,8 +74,8 @@
 		<copy file="data/units.dic" todir="${build.java.dir}/data" preservelastmodified="true" />
 	</target>
 
-	<target name="build" depends="build.java,jar,jar-with-dic,jar.core,jar.core-with-dic,jar.analysis,jar.solr" />
-	<target name="rebuild" depends="clean-all,build" />
+	<target name="dist" depends="build.java,jar,jar-with-dic,jar.core,jar.core-with-dic,jar.analysis,jar.solr" />
+
 	<target name="jar" depends="build.java">
 		<jar destfile="${build.dir}/${project.name}-all-${version}.jar" basedir="${build.java.dir}" >
 			<manifest>
@@ -108,7 +122,7 @@
 			<include name="**/solr/**"/>
 		</jar>
 	</target>
-	<target name="zip" depends="build">
+	<target name="zip" depends="dist">
 		<delete file="${build.dir}/${project.name}-${version}.zip"></delete>
 		<!--mkdir dir="temp-zip/lib"/-->
 		<copy todir="temp-zip/dist" preservelastmodified="true">

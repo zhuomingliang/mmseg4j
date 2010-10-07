@@ -1,0 +1,19 @@
+<ivy-module version="2.0">
+    <info organisation="com.chenlb" module="mmseg4j-all" revision="1.8.3"/>
+    <configurations>
+    	<conf name="default" visibility="public" description="runtime dependencies and master artifact can be used with this conf" extends="runtime,master"/>
+		<conf name="master"  visibility="public" description="contains only the artifact published by this module itself, with no transitive dependencies"/>
+		<conf name="compile" visibility="public" description="this is the default scope, used if none is specified. Compile dependencies are available in all classpaths."/>
+		<conf name="runtime" visibility="public" description="this scope indicates that the dependency is not required for compilation, but is for execution. It is in the runtime and test classpaths, but not the compile classpath." extends="compile"/>
+    </configurations>
+    <publications>
+      <!-- artifact name="mmseg4j-all" type="jar" ext="jar" conf="master" /-->
+    </publications>
+    <dependencies>
+		<!-- solr/lucene -->
+        <dependency org="org.apache.lucene" name="lucene-core" rev="3.0.2" conf="compile->master(*)"/>
+        <dependency org="org.apache.solr" name="solr-core" rev="1.4.1" conf="compile->master(*)"/>
+        <dependency org="org.apache.solr" name="solr-solrj" rev="1.4.1" conf="compile->master(*)"/>
+        
+    </dependencies>
+</ivy-module>

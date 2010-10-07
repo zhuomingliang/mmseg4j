@@ -3,8 +3,10 @@ package com.chenlb.mmseg4j.analysis;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 import com.chenlb.mmseg4j.MMSeg;
 import com.chenlb.mmseg4j.Seg;
@@ -14,9 +16,17 @@ public class MMSegTokenizer extends Tokenizer {
 
 	private MMSeg mmSeg;
 	
+	private TermAttribute termAtt;
+	private OffsetAttribute offsetAtt;
+	private TypeAttribute typeAtt;
+	
 	public MMSegTokenizer(Seg seg, Reader input) {
 		super(input);
 		mmSeg = new MMSeg(input, seg);
+		
+		termAtt = (TermAttribute)addAttribute(TermAttribute.class);
+		offsetAtt = (OffsetAttribute)addAttribute(OffsetAttribute.class);
+		typeAtt = (TypeAttribute)addAttribute(TypeAttribute.class);
 	}
 	
 	public void reset(Reader input) throws IOException {
@@ -24,7 +34,8 @@ public class MMSegTokenizer extends Tokenizer {
 		mmSeg.reset(input);
 	}
 
-	public Token next(Token reusableToken) throws IOException {
+/*//lucene 2.9 以下
+ 	public Token next(Token reusableToken) throws IOException {
 		Token token = null;
 		Word word = mmSeg.next();
 		if(word != null) {
@@ -42,6 +53,21 @@ public class MMSegTokenizer extends Tokenizer {
 		}
 		
 		return token;
-	}
+	}*/
 
+	//lucene 2.9/3.0
+	@Override
+	public boolean incrementToken() throws IOException {
+		clearAttributes();
+		Word word = mmSeg.next();
+		if(word != null) {
+			termAtt.setTermBuffer(word.getSen(), word.getWordOffset(), word.getLength());
+			offsetAtt.setOffset(word.getStartOffset(), word.getEndOffset());
+			typeAtt.setType(word.getType());
+			return true;
+		} else {
+			end();
+			return false;
+		}
+	}
 }

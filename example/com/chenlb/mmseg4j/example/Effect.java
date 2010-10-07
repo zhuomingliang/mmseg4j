@@ -16,6 +16,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.TokenStream;
 
+import com.chenlb.mmseg4j.analysis.TokenUtils;
+
 public class Effect {
 
 	private File path;
@@ -58,7 +60,7 @@ public class Effect {
 					bw.append("--------------------------").append("\r\n");;
 					bw.append(line).append("\r\n");
 					TokenStream ts = analyzer.tokenStream("text", new StringReader(line));
-					for(Token t= new Token(); (t=ts.next(t)) !=null;) {
+					for(Token t= new Token(); (t=TokenUtils.nextToken(ts, t)) !=null;) {
 						bw.append(new String(t.termBuffer(), 0, t.termLength())).append(" | ");
 					}
 					bw.append("\r\n");

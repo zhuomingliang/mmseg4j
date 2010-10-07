@@ -9,6 +9,9 @@ import junit.framework.TestCase;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 public class AnalyzerTest extends TestCase {
 
@@ -38,7 +41,8 @@ public class AnalyzerTest extends TestCase {
 			//txt = "1999年12345日报道了一条新闻,2000年中法国足球比赛";
 			/*txt = "第一卷 云天落日圆 第一节 偷欢不成倒大霉";
 			txt = "中国人民银行";
-			txt = "我们";*/
+			txt = "我们";
+			txt = "工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工作";*/
 			//ComplexSeg.setShowChunk(true);
 			printlnToken(txt, analyzer);
 			//txt = "核心提示：3月13日上午，近3000名全国人大代表按下表决器，高票批准了温家宝总理代表国务院所作的政府工作报告。这份工作报告起草历时3个月，由温家宝总理亲自主持。";
@@ -53,11 +57,11 @@ public class AnalyzerTest extends TestCase {
 		Analyzer analyzer = new MaxWordAnalyzer();
 		try {
 			//txt = "1884年,中法战争时被派福建会办海疆事务";
-			txt = "1999年12345日报道了一条新闻,2000年中法国足球比赛";
+			//txt = "1999年12345日报道了一条新闻,2000年中法国足球比赛";
 			//txt = "第一卷 云天落日圆 第一节 偷欢不成倒大霉";
 			//txt = "中国人民银行";
 			//txt = "下一个 为什么";
-			txt = "我们家门前的大水沟很难过";
+			//txt = "我们家门前的大水沟很难过";
 			//ComplexSeg.setShowChunk(true);
 			printlnToken(txt, analyzer);
 			//txt = "核心提示：3月13日上午，近3000名全国人大代表按下表决器，高票批准了温家宝总理代表国务院所作的政府工作报告。这份工作报告起草历时3个月，由温家宝总理亲自主持。";
@@ -86,9 +90,20 @@ public class AnalyzerTest extends TestCase {
 	}
 	
 	private void printlnToken(String txt, Analyzer analyzer) throws IOException {
-		System.out.println("---------\n"+txt);
+		System.out.println("---------"+txt.length()+"\n"+txt);
 		TokenStream ts = analyzer.tokenStream("text", new StringReader(txt));
+		/*//lucene 2.9 以下
 		for(Token t= new Token(); (t=ts.next(t)) !=null;) {
+			System.out.println(t);
+		}*/
+		/*while(ts.incrementToken()) {
+			TermAttribute termAtt = (TermAttribute)ts.getAttribute(TermAttribute.class);
+			OffsetAttribute offsetAtt = (OffsetAttribute)ts.getAttribute(OffsetAttribute.class);
+			TypeAttribute typeAtt = (TypeAttribute)ts.getAttribute(TypeAttribute.class);
+			
+			System.out.println("("+termAtt.term()+","+offsetAtt.startOffset()+","+offsetAtt.endOffset()+",type="+typeAtt.type()+")");
+		}*/
+		for(Token t= new Token(); (t=TokenUtils.nextToken(ts, t)) !=null;) {
 			System.out.println(t);
 		}
 	}

@@ -14,6 +14,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.TokenStream;
 
+import com.chenlb.mmseg4j.analysis.TokenUtils;
+
 public class PerformanceAnalyzer {
 
 	private File path;
@@ -43,7 +45,7 @@ public class PerformanceAnalyzer {
 				OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(new File(txt.getAbsoluteFile()+"."+outputChipName+".word")));
 				BufferedWriter bw = new BufferedWriter(osw);
 				long start = System.currentTimeMillis();
-				for(Token t= new Token(); (t=ts.next(t)) !=null;) {
+				for(Token t= new Token(); (t=TokenUtils.nextToken(ts, t)) !=null;) {
 					bw.append(new String(t.term())).append("\r\n");
 				}
 				long t = System.currentTimeMillis() - start;
