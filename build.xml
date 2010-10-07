@@ -146,10 +146,11 @@
 			<fileset dir="">
 				<include name="*.txt"/>
 				<include name="src/**"/>
-				<include name="lib/**"/>
+				<!--include name="lib/**"/-->
 				<include name="data/*.dic"/>
 				<include name="build.properties"/>
 				<include name="build.xml"/>
+				<include name="ivy.xml"/>
 			</fileset>
 		</copy>
 		<zip destfile="${build.dir}/${project.name}-${version}.zip" basedir="temp-zip">
