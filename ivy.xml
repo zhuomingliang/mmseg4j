@@ -11,7 +11,7 @@
     </publications>
     <dependencies>
 		<!-- solr/lucene -->
-        <dependency org="org.apache.lucene" name="lucene-core" rev="3.0.2" conf="compile->master(*)"/>
+        <dependency org="org.apache.lucene" name="lucene-core" rev="2.9.3" conf="compile->master(*)"/>
         <dependency org="org.apache.solr" name="solr-core" rev="1.4.1" conf="compile->master(*)"/>
         <dependency org="org.apache.solr" name="solr-solrj" rev="1.4.1" conf="compile->master(*)"/>
         
