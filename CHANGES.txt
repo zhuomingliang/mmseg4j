@@ -1,3 +1,6 @@
+---------1.8.4 2010-12-17-----------
+1、fixbug: CutLetterDigitFilter 丢了第一个 token。
+2、增加 CutLetterDigitFilterFactory for solr
 ---------1.8.3 2010-10-07-----------
 1、用 ivy 管理 jar
 2、支持 lucene 2.9/3.0, solr 升级到 1.4

@@ -27,7 +27,7 @@ public class CutLetterDigitFilter extends TokenFilter {
     private TypeAttribute typeAtt;
     private Token reusableToken;
 	
-	protected CutLetterDigitFilter(TokenStream input) {
+	public CutLetterDigitFilter(TokenStream input) {
 		super(input);
 		
 		reusableToken = new Token();
@@ -36,7 +36,7 @@ public class CutLetterDigitFilter extends TokenFilter {
 		typeAtt = (TypeAttribute)addAttribute(TypeAttribute.class);
 	}
 
-	//嫌容 lucene 2.9
+	//兼容 lucene 2.9
 	public Token next(Token reusableToken) throws IOException {
 		return nextToken(reusableToken);
 	}
@@ -50,9 +50,10 @@ public class CutLetterDigitFilter extends TokenFilter {
 			return nextToken;
 		}
 		
+		/*//在 TokenUtils.nextToken 已经调用了 inc
 		if(!input.incrementToken()) {
 			return null;
-		}
+		}*/
 		
 		/*TermAttribute termAtt = (TermAttribute)input.getAttribute(TermAttribute.class);
 		OffsetAttribute offsetAtt = (OffsetAttribute)input.getAttribute(OffsetAttribute.class);
