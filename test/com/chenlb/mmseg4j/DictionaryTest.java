@@ -71,5 +71,11 @@ public class DictionaryTest extends TestCase {
 		System.out.println(f.getAbsolutePath());
 		System.out.println(f1);
 		System.out.println(f.equals(f1));
+		
+		f1 = new File("data");
+		System.out.println(f.equals(f1)+" -> "+f.hashCode()+", "+f1.hashCode());
+		
+		f1 = new File("./data");
+		System.out.println(f.equals(f1));
 	}
 }

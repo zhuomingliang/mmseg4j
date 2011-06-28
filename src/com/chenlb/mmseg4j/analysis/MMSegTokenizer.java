@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 import com.chenlb.mmseg4j.MMSeg;
@@ -16,7 +16,7 @@ public class MMSegTokenizer extends Tokenizer {
 
 	private MMSeg mmSeg;
 	
-	private TermAttribute termAtt;
+	private CharTermAttribute termAtt;
 	private OffsetAttribute offsetAtt;
 	private TypeAttribute typeAtt;
 	
@@ -24,7 +24,7 @@ public class MMSegTokenizer extends Tokenizer {
 		super(input);
 		mmSeg = new MMSeg(input, seg);
 		
-		termAtt = (TermAttribute)addAttribute(TermAttribute.class);
+		termAtt = (CharTermAttribute)addAttribute(CharTermAttribute.class);
 		offsetAtt = (OffsetAttribute)addAttribute(OffsetAttribute.class);
 		typeAtt = (TypeAttribute)addAttribute(TypeAttribute.class);
 	}
@@ -61,7 +61,10 @@ public class MMSegTokenizer extends Tokenizer {
 		clearAttributes();
 		Word word = mmSeg.next();
 		if(word != null) {
-			termAtt.setTermBuffer(word.getSen(), word.getWordOffset(), word.getLength());
+			//lucene 3.0
+			//termAtt.setTermBuffer(word.getSen(), word.getWordOffset(), word.getLength());
+			//lucene 3.1
+			termAtt.copyBuffer(word.getSen(), word.getWordOffset(), word.getLength());
 			offsetAtt.setOffset(word.getStartOffset(), word.getEndOffset());
 			typeAtt.setType(word.getType());
 			return true;

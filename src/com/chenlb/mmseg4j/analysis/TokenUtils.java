@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 /**
@@ -29,7 +29,7 @@ public class TokenUtils {
 			return null;
 		}
 		
-		TermAttribute termAtt = (TermAttribute)input.getAttribute(TermAttribute.class);
+		CharTermAttribute termAtt = (CharTermAttribute)input.getAttribute(CharTermAttribute.class);
 		OffsetAttribute offsetAtt = (OffsetAttribute)input.getAttribute(OffsetAttribute.class);
 		TypeAttribute typeAtt = (TypeAttribute)input.getAttribute(TypeAttribute.class);
 		
@@ -39,7 +39,10 @@ public class TokenUtils {
 		
 		reusableToken.clear();
 		if(termAtt != null) {
-			reusableToken.setTermBuffer(termAtt.termBuffer(), 0, termAtt.termLength());
+			//lucene 3.0
+			//reusableToken.setTermBuffer(termAtt.termBuffer(), 0, termAtt.termLength());
+			//lucene 3.1
+			reusableToken.copyBuffer(termAtt.buffer(), 0, termAtt.length());
 		}
 		if(offsetAtt != null) {
 			reusableToken.setStartOffset(offsetAtt.startOffset());
